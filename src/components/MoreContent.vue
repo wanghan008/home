@@ -6,6 +6,7 @@
       <p>把想法变成可以运行、可以体验的作品。</p>
     </div>
     <div class="project-list">
+      <a class="project-card" href="/blog"><span class="project-index">00</span><span class="project-copy"><strong>心情日记</strong><small>个人 Blog · 日常记录与想法</small></span><span class="project-arrow">↗</span></a>
       <a class="project-card" href="https://fish.studygame.ipv64.de/" target="_blank" rel="noopener noreferrer">
         <span class="project-index">01</span>
         <span class="project-copy">
