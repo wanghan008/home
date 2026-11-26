@@ -1,4 +1,7 @@
 <template>
+  <BlogPage v-if='pagePath === "/blog"' />
+  <AdminPage v-else-if='pagePath === "/admin"' />
+  <template v-else>
   <!-- 加载 -->
   <Loading />
   <!-- 壁纸 -->
@@ -31,6 +34,7 @@
       </Transition>
     </main>
   </Transition>
+  </template>
 </template>
 
 <script setup>
@@ -47,6 +51,10 @@ import Box from "@/views/Box/index.vue";
 import MoreSet from "@/views/MoreSet/index.vue";
 import cursorInit from "@/utils/cursor.js";
 import config from "@/../package.json";
+import BlogPage from "@/views/Blog/index.vue";
+import AdminPage from "@/views/Admin/index.vue";
+
+const pagePath = window.location.pathname.replace(/\\/$/, "") || "/";
 
 const store = mainStore();
 
