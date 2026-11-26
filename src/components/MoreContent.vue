@@ -14,19 +14,19 @@
         </span>
         <span class="project-arrow">↗</span>
       </a>
-      <a class="project-card" href="https://github.com/wanghan008" target="_blank" rel="noopener noreferrer">
+      <a class="project-card" href="https://thunderfighter.wanghanhan008.workers.dev" target="_blank" rel="noopener noreferrer">
         <span class="project-index">02</span>
         <span class="project-copy">
-          <strong>像素风自走棋</strong>
-          <small>开发中 · Godot 与角色养成玩法</small>
+          <strong>雷霆战机</strong>
+          <small>在线体验 · 科幻风格飞行射击游戏</small>
         </span>
         <span class="project-arrow">↗</span>
       </a>
-      <a class="project-card" href="https://github.com/wanghan008" target="_blank" rel="noopener noreferrer">
+      <a class="project-card" href="https://han.studygame.ipv64.de/" target="_blank" rel="noopener noreferrer">
         <span class="project-index">03</span>
         <span class="project-copy">
-          <strong>游戏辅助工具</strong>
-          <small>开发中 · 游戏数据分析与筛选工具</small>
+          <strong>新项目</strong>
+          <small>在线体验 · 新增项目入口</small>
         </span>
         <span class="project-arrow">↗</span>
       </a>
