@@ -1,5 +1,10 @@
 [
   {
+    "icon": "Blog",
+    "name": "心情日记",
+    "link": "/blog"
+  },
+  {
     "icon": "Fire",
     "name": "捕鱼游戏",
     "link": "https://fish.studygame.ipv64.de/"
