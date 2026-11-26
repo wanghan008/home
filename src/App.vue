@@ -54,7 +54,7 @@ import config from "@/../package.json";
 import BlogPage from "@/views/Blog/index.vue";
 import AdminPage from "@/views/Admin/index.vue";
 
-const pagePath = window.location.pathname.replace(/\\/$/, "") || "/";
+const pagePath = window.location.pathname.endsWith("/") && window.location.pathname !== "/" ? window.location.pathname.slice(0, -1) : window.location.pathname;
 
 const store = mainStore();
 
