@@ -1,0 +1,6 @@
+name = "home"
+compatibility_date = "2026-11-27"
+
+[assets]
+directory = "./dist"
+binding = "ASSETS"
