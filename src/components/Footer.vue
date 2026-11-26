@@ -15,7 +15,7 @@
         </span>
         <!-- 以下信息请不要修改哦 -->
         <span class="hidden">
-          &amp;&nbsp;Made&nbsp;by
+          &amp;&nbsp;模板来源：
           <a :href="config.github" target="_blank">
             {{ config.author }}
           </a>
