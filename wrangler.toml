@@ -1,6 +1,6 @@
 name = "home"
 main = "worker/index.js"
-compatibility_date = "2026-11-27"
+compatibility_date = "2026-11-26"
 
 [[d1_databases]]
 binding = "DB"
