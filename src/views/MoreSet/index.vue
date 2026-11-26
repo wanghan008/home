@@ -59,18 +59,6 @@ import config from "@/../package.json";
 const store = mainStore();
 const closeShow = ref(false);
 
-// 站点链接
-const siteUrl = computed(() => {
-  const url = import.meta.env.VITE_SITE_URL;
-  if (!url) return ["个人主页", ""];
-  // 判断协议前缀
-  if (url.startsWith("http://") || url.startsWith("https://")) {
-    const urlFormat = url.replace(/^(https?:\/\/)/, "");
-    return urlFormat.split(".");
-  }
-  return url.split(".");
-});
-
 // 更新日志
 const upData = reactive({
   new: [
