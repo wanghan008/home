@@ -2,6 +2,13 @@ name = "home"
 main = "worker/index.js"
 compatibility_date = "2026-11-26"
 
+# 仅将博客、管理后台和 API 路径交给 Worker，根路径继续由 GitHub Pages 提供。
+routes = [
+  { pattern = "ta.whan.ipv64.de/blog*", zone_name = "ipv64.de" },
+  { pattern = "ta.whan.ipv64.de/admin*", zone_name = "ipv64.de" },
+  { pattern = "ta.whan.ipv64.de/api/*", zone_name = "ipv64.de" }
+]
+
 [[d1_databases]]
 binding = "DB"
 database_name = "home-blog"
