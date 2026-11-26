@@ -27,7 +27,7 @@ async function validSession(request, secret) {
   const payload = parts.slice(0, 2).join(".");
   return (await sign(payload, secret)) === parts[2];
 }
-function cookie(value, maxAge) {
+function validDate(value) {\n  if (typeof value !== "string" || value.length !== 10) return false;\n  const parsed = new Date(value + "T00:00:00Z");\n  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;\n}\nfunction cookie(value, maxAge) {
   return `${COOKIE}=${value}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=${maxAge}`;
 }
 async function body(request) {
