@@ -2,6 +2,12 @@ name = "home"
 main = "worker/index.js"
 compatibility_date = "2026-11-26"
 
+# 保留在 Cloudflare 控制台中配置的变量，并声明部署必须继承的密钥。
+keep_vars = true
+
+[secrets]
+required = ["ADMIN_PASSWORD", "SESSION_SECRET"]
+
 # 仅将博客、管理后台和 API 路径交给 Worker，根路径继续由 GitHub Pages 提供。
 routes = [
   { pattern = "ta.whan.ipv64.de/blog*", zone_name = "ipv64.de" },
