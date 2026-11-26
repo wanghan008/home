@@ -1,12 +1,10 @@
-<template>
+ <template>
   <div id="loader-wrapper" :class="store.imgLoadStatus ? 'loaded' : null">
     <div class="loader">
       <div class="loader-circle" />
       <div class="loader-text">
-        <span class="name">
-          {{ siteName }}
-        </span>
-        <span class="tip"> 加载中 </span>
+        <span class="name">{{ siteName }}</span>
+        <span class="tip">正在加载</span>
       </div>
     </div>
     <div class="loader-section section-left" />
@@ -18,9 +16,7 @@
 import { mainStore } from "@/store";
 
 const store = mainStore();
-
-// 配置
-const siteName = import.meta.env.VITE_SITE_NAME;
+const siteName = import.meta.env.VITE_SITE_NAME || "个人主页";
 </script>
 
 <style lang="scss" scoped>
@@ -50,7 +46,6 @@ const siteName = import.meta.env.VITE_SITE_NAME;
       border-top-color: #fff;
       animation: spin 1.8s linear infinite;
       z-index: 2;
-
       &:before {
         content: "";
         position: absolute;
@@ -63,7 +58,6 @@ const siteName = import.meta.env.VITE_SITE_NAME;
         border-top-color: #a4a4a4;
         animation: spin-reverse 0.6s linear infinite;
       }
-
       &:after {
         content: "";
         position: absolute;
@@ -97,24 +91,17 @@ const siteName = import.meta.env.VITE_SITE_NAME;
     top: 0;
     width: 51%;
     height: 100%;
-    background: #333;
+    background: #252a34;
     z-index: 1;
-    &.section-left {
-      left: 0;
-    }
-    &.section-right {
-      right: 0;
-    }
+    &.section-left { left: 0; }
+    &.section-right { right: 0; }
   }
   &.loaded {
     visibility: hidden;
     transform: translateY(-100%);
-    transition:
-      transform 0.3s 1s ease-out,
-      visibility 0.3s 1s ease-out;
+    transition: transform 0.3s 1s ease-out, visibility 0.3s 1s ease-out;
     .loader {
-      .loader-circle,
-      .loader-text {
+      .loader-circle, .loader-text {
         opacity: 0;
         transition: opacity 0.3s ease-out;
       }
@@ -131,22 +118,12 @@ const siteName = import.meta.env.VITE_SITE_NAME;
     }
   }
 }
-
 @keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
-
 @keyframes spin-reverse {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(-360deg);
-  }
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(-360deg); }
 }
 </style>
