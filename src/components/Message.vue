@@ -1,15 +1,10 @@
 <template>
-  <!-- 基本信息 -->
+  <!-- 首页介绍 -->
   <div class="message">
-    <!-- Logo -->
     <div class="logo">
-      <img class="logo-img" :src="siteLogo" alt="logo" />
-      <div :class="{ name: true, 'text-hidden': true, long: siteUrl[0].length >= 6 }">
-        <span class="bg">{{ siteUrl[0] }}</span>
-        <span class="sm">.{{ siteUrl[1] }}</span>
-      </div>
+      <div class="name">个人主页</div>
+      <div class="subtitle">项目 · 作品 · 技术探索</div>
     </div>
-    <!-- 简介 -->
     <div class="description cards" @click="changeBox">
       <div class="content">
         <Icon size="16">
@@ -34,26 +29,13 @@ import { Icon } from "@vicons/utils";
 import { QuoteLeft, QuoteRight } from "@vicons/fa";
 import { Error } from "@icon-park/vue-next";
 import { mainStore } from "@/store";
+
 const store = mainStore();
 
-// 主页站点logo
-const siteLogo = import.meta.env.VITE_SITE_MAIN_LOGO;
-// 站点链接
-const siteUrl = computed(() => {
-  const url = import.meta.env.VITE_SITE_URL;
-  if (!url) return "imsyy.top".split(".");
-  // 判断协议前缀
-  if (url.startsWith("http://") || url.startsWith("https://")) {
-    const urlFormat = url.replace(/^(https?:\/\/)/, "");
-    return urlFormat.split(".");
-  }
-  return url.split(".");
-});
-
-// 简介区域文字
+// 首页简介
 const descriptionText = reactive({
-  hello: import.meta.env.VITE_DESC_HELLO,
-  text: import.meta.env.VITE_DESC_TEXT,
+  hello: import.meta.env.VITE_DESC_HELLO || "你好，欢迎来到我的主页",
+  text: import.meta.env.VITE_DESC_TEXT || "这里展示我的项目、作品与技术探索。",
 });
 
 // 切换右侧功能区
@@ -62,7 +44,7 @@ const changeBox = () => {
     store.boxOpenState = !store.boxOpenState;
   } else {
     ElMessage({
-      message: "当前页面宽度不足以开启盒子",
+      message: "当前屏幕宽度不足，暂不能打开内容面板",
       grouping: true,
       icon: h(Error, {
         theme: "filled",
@@ -77,11 +59,15 @@ watch(
   () => store.boxOpenState,
   (value) => {
     if (value) {
-      descriptionText.hello = import.meta.env.VITE_DESC_HELLO_OTHER;
-      descriptionText.text = import.meta.env.VITE_DESC_TEXT_OTHER;
+      descriptionText.hello =
+        import.meta.env.VITE_DESC_HELLO_OTHER || "欢迎继续浏览";
+      descriptionText.text =
+        import.meta.env.VITE_DESC_TEXT_OTHER || "你可以通过下方入口查看我的项目与作品。";
     } else {
-      descriptionText.hello = import.meta.env.VITE_DESC_HELLO;
-      descriptionText.text = import.meta.env.VITE_DESC_TEXT;
+      descriptionText.hello =
+        import.meta.env.VITE_DESC_HELLO || "你好，欢迎来到我的主页";
+      descriptionText.text =
+        import.meta.env.VITE_DESC_TEXT || "这里展示我的项目、作品与技术探索。";
     }
   },
 );
@@ -91,52 +77,31 @@ watch(
 .message {
   .logo {
     display: flex;
-    flex-direction: row;
-    align-items: center;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 120px;
     animation: fade 0.5s;
-    max-width: 460px;
-    .logo-img {
-      border-radius: 50%;
-      width: 120px;
-    }
+
     .name {
-      width: 100%;
-      padding-left: 22px;
-      transform: translateY(-8px);
-      font-family: "Pacifico-Regular";
-
-      .bg {
-        font-size: 5rem;
-      }
-
-      .sm {
-        margin-left: 6px;
-        font-size: 2rem;
-        @media (min-width: 721px) and (max-width: 789px) {
-          display: none;
-        }
-      }
-    }
-    @media (max-width: 768px) {
-      .logo-img {
-        width: 100px;
-      }
-      .name {
-        height: 128px;
-        .bg {
-          font-size: 4.5rem;
-        }
-      }
+      font-size: clamp(2.8rem, 6vw, 5rem);
+      line-height: 1.25;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-shadow: 0 2px 18px #00000050;
     }
 
-    @media (max-width: 720px) {
-      max-width: 100%;
+    .subtitle {
+      margin-top: 12px;
+      font-size: 1rem;
+      letter-spacing: 0.28em;
+      color: rgb(255 255 255 / 78%);
     }
   }
 
   .description {
     padding: 1rem;
-    margin-top: 3.5rem;
+    margin-top: 2rem;
     max-width: 460px;
     animation: fade 0.5s;
 
@@ -150,10 +115,9 @@ watch(
         margin-right: auto;
         transition: opacity 0.2s;
 
-        p {
-          &:nth-of-type(1) {
-            font-family: "Pacifico-Regular";
-          }
+        p:first-of-type {
+          font-weight: 600;
+          letter-spacing: 0.04em;
         }
       }
 
@@ -161,33 +125,11 @@ watch(
         align-self: flex-end;
       }
     }
+
     @media (max-width: 720px) {
       max-width: 100%;
       pointer-events: none;
     }
   }
-  // @media (max-width: 390px) {
-  //   .logo {
-  //     flex-direction: column;
-  //     .logo-img {
-  //       display: none;
-  //     }
-  //     .name {
-  //       margin-left: 0;
-  //       height: auto;
-  //       transform: none;
-  //       text-align: center;
-  //       .bg {
-  //         font-size: 3.5rem;
-  //       }
-  //       .sm {
-  //         font-size: 1.4rem;
-  //       }
-  //     }
-  //   }
-  //   .description {
-  //     margin-top: 2.5rem;
-  //   }
-  // }
 }
 </style>
