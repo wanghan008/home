@@ -58,7 +58,7 @@ onMounted(async () => {
     const response = await fetch("/api/homepage", { cache: "no-store" });
     if (!response.ok) return;
     const data = await response.json();
-    if (Array.isArray(data.links) && data.links.length) {
+    if (Array.isArray(data.links)) {
       links.value = data.links.map(item => ({ ...item, name: item.title, link: item.url }));
     }
   } catch (error) {
