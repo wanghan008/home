@@ -1,5 +1,13 @@
 name = "home"
+main = "worker/index.js"
 compatibility_date = "2026-11-27"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "home-blog"
+database_id = "REPLACE_WITH_D1_DATABASE_ID"
+migrations_dir = "migrations"
 
 [assets]
 directory = "./dist"
+binding = "ASSETS"
