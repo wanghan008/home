@@ -55,11 +55,11 @@ const startYear = ref(
   import.meta.env.VITE_SITE_START?.length >= 4 ? 
   import.meta.env.VITE_SITE_START.substring(0, 4) : null
 );
-const siteIcp = ref(import.meta.env.VITE_SITE_ICP);
-const siteAuthor = ref(import.meta.env.VITE_SITE_AUTHOR);
+const siteIcp = ref(import.meta.env.VITE_SITE_ICP || "");
+const siteAuthor = ref(import.meta.env.VITE_SITE_AUTHOR || "个人主页");
 const siteUrl = computed(() => {
   const url = import.meta.env.VITE_SITE_URL;
-  if (!url) return "https://www.imsyy.top";
+  if (!url) return "https://github.com/wanghan008";
   // 判断协议前缀
   if (!url.startsWith("http://") && !url.startsWith("https://")) {
     return "//" + url;
