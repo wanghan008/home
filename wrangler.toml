@@ -8,11 +8,9 @@ keep_vars = true
 [secrets]
 required = ["ADMIN_PASSWORD", "SESSION_SECRET"]
 
-# 仅将博客、管理后台和 API 路径交给 Worker，根路径继续由 GitHub Pages 提供。
+# 整个自定义域名由 Worker 提供，与 workers.dev 使用同一套 dist 静态资源。
 routes = [
-  { pattern = "ta.whan.ipv64.de/blog*", zone_name = "ipv64.de" },
-  { pattern = "ta.whan.ipv64.de/admin*", zone_name = "ipv64.de" },
-  { pattern = "ta.whan.ipv64.de/api/*", zone_name = "ipv64.de" }
+  { pattern = "ta.whan.ipv64.de/*", zone_name = "ipv64.de" }
 ]
 
 [[d1_databases]]
