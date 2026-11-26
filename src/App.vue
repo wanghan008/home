@@ -117,7 +117,7 @@ onMounted(() => {
   | | | |\\/| |\\___ \\  \\   /    \\   /
  _| |_| |  | |____) |  | |      | |
 |_____|_|  |_|_____/   |_|      |_|`;
-  const content = `\n\n版本: ${config.version}\n主页: ${config.home}\nGitHub: ${config.github}`;
+  const content = `\n\n版本: ${config.version}\n主页: ${config.home}\n代码仓库: ${config.github}`;
   console.info(`%c${title1} %c${title2} %c${content}`, styleTitle1, styleTitle2, styleContent);
 });
 
