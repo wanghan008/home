@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS homepage_links (
   enabled INTEGER NOT NULL DEFAULT 1 CHECK (enabled IN (0, 1)),
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (module_id) REFERENCES homepage_modules(id) ON DELETE CASCADE
+  FOREIGN KEY (module_id) REFERENCES homepage_modules(id) ON DELETE SET NULL
 );
 CREATE INDEX IF NOT EXISTS idx_homepage_links_module_order
   ON homepage_links (module_id, enabled, sort_order, id);
