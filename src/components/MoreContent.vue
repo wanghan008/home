@@ -1,14 +1,121 @@
 <template>
-  <div class="more-content">您可在此编写任意内容</div>
+  <div class="more-content">
+    <div class="section-heading">
+      <span class="eyebrow">项目与创作</span>
+      <h2>正在探索的方向</h2>
+      <p>把想法变成可以运行、可以体验的作品。</p>
+    </div>
+    <div class="project-list">
+      <a class="project-card" href="https://fish.studygame.ipv64.de/" target="_blank" rel="noopener noreferrer">
+        <span class="project-index">01</span>
+        <span class="project-copy">
+          <strong>捕鱼游戏</strong>
+          <small>在线体验 · 网页游戏与云端存档</small>
+        </span>
+        <span class="project-arrow">↗</span>
+      </a>
+      <a class="project-card" href="https://github.com/wanghan008" target="_blank" rel="noopener noreferrer">
+        <span class="project-index">02</span>
+        <span class="project-copy">
+          <strong>像素风自走棋</strong>
+          <small>开发中 · Godot 与角色养成玩法</small>
+        </span>
+        <span class="project-arrow">↗</span>
+      </a>
+      <a class="project-card" href="https://github.com/wanghan008" target="_blank" rel="noopener noreferrer">
+        <span class="project-index">03</span>
+        <span class="project-copy">
+          <strong>游戏辅助工具</strong>
+          <small>开发中 · 游戏数据分析与筛选工具</small>
+        </span>
+        <span class="project-arrow">↗</span>
+      </a>
+    </div>
+    <div class="more-note">
+      <span>持续更新</span>
+      <span>开发记录 · 技术实验 · 游戏创作</span>
+    </div>
+  </div>
 </template>
 
 <style lang="scss" scoped>
 .more-content {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   justify-content: center;
-  margin-top: 20px;
   width: 100%;
-  height: 100%;
+  min-height: 100%;
+  padding: 1.5rem 0;
+  .section-heading {
+    margin-bottom: 1.5rem;
+    .eyebrow {
+      font-size: 0.8rem;
+      letter-spacing: 0.16em;
+      opacity: 0.65;
+    }
+    h2 {
+      margin-top: 0.65rem;
+      font-size: clamp(1.35rem, 2vw, 1.8rem);
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+    p {
+      margin-top: 0.6rem;
+      font-size: 0.92rem;
+      opacity: 0.72;
+    }
+  }
+  .project-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    .project-card {
+      display: flex;
+      align-items: center;
+      min-height: 72px;
+      padding: 0.85rem 1rem;
+      border: 1px solid #ffffff20;
+      border-radius: 10px;
+      background: #ffffff0d;
+      transition: background 0.25s, transform 0.25s, border-color 0.25s;
+      &:hover {
+        background: #ffffff1c;
+        border-color: #ffffff50;
+        transform: translateX(4px);
+        text-decoration: none;
+      }
+      .project-index {
+        width: 42px;
+        font-size: 0.8rem;
+        letter-spacing: 0.08em;
+        opacity: 0.55;
+      }
+      .project-copy {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+        strong { font-size: 0.98rem; font-weight: 600; }
+        small { font-size: 0.82rem; opacity: 0.65; }
+      }
+      .project-arrow {
+        margin-left: auto;
+        font-size: 1.15rem;
+        opacity: 0.65;
+      }
+    }
+  }
+  .more-note {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-top: 1.3rem;
+    font-size: 0.78rem;
+    opacity: 0.6;
+  }
+  @media (max-width: 720px) {
+    padding: 1rem 0;
+    .section-heading { margin-bottom: 1rem; }
+    .project-card { min-height: 64px; }
+  }
 }
 </style>
