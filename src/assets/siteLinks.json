@@ -5,8 +5,13 @@
     "link": "https://fish.studygame.ipv64.de/"
   },
   {
+    "icon": "CompactDisc",
+    "name": "雷霆战机",
+    "link": "https://thunderfighter.wanghanhan008.workers.dev"
+  },
+  {
     "icon": "LaptopCode",
-    "name": "代码项目",
-    "link": "https://github.com/wanghan008"
+    "name": "新项目",
+    "link": "https://han.studygame.ipv64.de/"
   }
 ]
