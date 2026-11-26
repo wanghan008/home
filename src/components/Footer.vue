@@ -3,9 +3,9 @@
     <Transition name="fade" mode="out-in">
       <div v-if="!store.playerState || !store.playerLrcShow" class="power">
         <span>
-          <span :class="startYear < fullYear ? 'c-hidden' : 'hidden'">Copyright&nbsp;</span>
+          <span :class="startYear < fullYear ? 'c-hidden' : 'hidden'">版权所有&nbsp;</span>
           &copy;
-          <span v-if="startYear < fullYear"
+          <span v-if="startYear && startYear < fullYear"
             class="site-start">
             {{ startYear }}
             -
@@ -21,8 +21,7 @@
           </a>
         </span>
         <!-- 站点备案 -->
-        <span>
-          &amp;
+        <span v-if="siteIcp">
           <a v-if="siteIcp" href="https://beian.miit.gov.cn" target="_blank">
             {{ siteIcp }}
           </a>
