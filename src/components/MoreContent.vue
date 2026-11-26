@@ -14,19 +14,11 @@
         </span>
         <span class="project-arrow">↗</span>
       </a>
-      <a class="project-card" href="https://thunderfighter.wanghanhan008.workers.dev" target="_blank" rel="noopener noreferrer">
+      <a class="project-card" href="https://han.studygame.ipv64.de/" target="_blank" rel="noopener noreferrer">
         <span class="project-index">02</span>
         <span class="project-copy">
           <strong>雷霆战机</strong>
           <small>在线体验 · 科幻风格飞行射击游戏</small>
-        </span>
-        <span class="project-arrow">↗</span>
-      </a>
-      <a class="project-card" href="https://han.studygame.ipv64.de/" target="_blank" rel="noopener noreferrer">
-        <span class="project-index">03</span>
-        <span class="project-copy">
-          <strong>新项目</strong>
-          <small>在线体验 · 新增项目入口</small>
         </span>
         <span class="project-arrow">↗</span>
       </a>
