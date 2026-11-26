@@ -1,0 +1,10 @@
+CREATE TABLE IF NOT EXISTS moods (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  title TEXT NOT NULL,
+  content TEXT NOT NULL,
+  mood_date TEXT NOT NULL,
+  published INTEGER NOT NULL DEFAULT 0 CHECK (published IN (0, 1)),
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_moods_published_date ON moods (published, mood_date DESC, id DESC);
