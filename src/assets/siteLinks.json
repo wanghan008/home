@@ -5,6 +5,11 @@
     "link": "/blog"
   },
   {
+    "icon": "Settings",
+    "name": "管理文章",
+    "link": "https://ta.whan.ipv64.de/admin"
+  },
+  {
     "icon": "Fire",
     "name": "捕鱼游戏",
     "link": "https://fish.studygame.ipv64.de/"
