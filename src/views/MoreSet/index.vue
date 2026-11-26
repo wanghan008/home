@@ -9,7 +9,7 @@
         <div class="version">
           <div class="num">版本&nbsp;{{ config.version }}</div>
           <el-tooltip content="查看项目源代码" placement="right" :show-arrow="false">
-            <github-one class="github" theme="outline" size="24" @click="jumpTo(config.github)" />
+            <github-one class="github" theme="outline" size="24" @click="jumpTo("https://github.com/wanghan008/home")" />
           </el-tooltip>
         </div>
         <el-card class="update">
