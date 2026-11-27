@@ -119,7 +119,7 @@ export default {
       }
       if (url.pathname === "/api/admin/appearance" && request.method === "PUT") {
         const data = await readBody(request);
-        const themes = ["classic", "tech", "minimal", "glass", "nature"];
+        const themes = ["classic", "tech", "minimal", "glass", "nature", "ocean", "sunset", "sakura", "cyberpunk", "aurora", "midnight", "lavender", "cream", "forest", "desert", "mono", "retro", "nordic", "rose", "emerald"];
         const fits = ["cover", "contain", "center"];
         const theme = themes.includes(data?.theme) ? data.theme : null;
         const backgroundUrl = cleanText(data?.backgroundUrl, 1000);
