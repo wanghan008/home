@@ -12,6 +12,7 @@
         <nav class="tabs">
           <button v-for="tab in tabs" :key="tab.id" :class="{active:activeTab===tab.id}" @click="activeTab=tab.id">{{ tab.label }}</button>
         </nav>
+        <input ref="uploadInput" class="hidden-file" type="file" accept="image/*" @change="uploadImage"/>
         <div class="top-actions">
           <button v-if="activeTab==='modules'" class="save-button" type="button" @click="saveModule" :disabled="busy">{{ busy ? "正在保存…" : (moduleDraft.id ? "保存模块修改" : "保存主页模块") }}</button>
           <button v-else-if="activeTab==='links'" class="save-button" type="button" @click="saveLink" :disabled="busy">{{ busy ? "正在保存…" : (linkDraft.id ? "保存链接修改" : "保存网站链接") }}</button>
@@ -121,7 +122,6 @@
         </section>
         <section v-else-if="activeTab==='images'" class="manager">
           <div class="section-heading"><div><h2>图片库</h2><p class="hint">图片上传后可在主页模块和心情日志中重复使用。</p></div><button type="button" @click="uploadInput?.click()" :disabled="uploading">{{ uploading ? "正在压缩上传…" : "＋ 上传图片" }}</button></div>
-          <input ref="uploadInput" class="hidden-file" type="file" accept="image/*" @change="uploadImage"/>
           <p class="field-hint">自动压缩为 WebP；单张不超过 200 KB，最多 20 张，总容量不超过 4 MB。图片保存在现有 D1 数据库，不使用 R2。</p>
           <p class="save-hint">当前：{{ images.length }} / 20 张 · {{ formatBytes(imageTotalBytes) }} / 4 MB</p>
           <div v-if="!images.length" class="empty-images">图片库还是空的，点击「上传图片」添加第一张。</div>
@@ -136,7 +136,7 @@
         </section>
         <div v-if="imagePickerOpen" class="image-picker-backdrop" @click.self="closeImagePicker">
           <section class="image-picker" role="dialog" aria-modal="true" aria-label="选择图片">
-            <div class="section-heading"><div><h2>选择图片</h2><p class="hint">选择一张已上传的图片</p></div><button type="button" class="subtle" @click="closeImagePicker">关闭</button></div>
+            <div class="section-heading"><div><h2>选择图片</h2><p class="hint">选择一张已上传的图片，也可以直接上传新图片</p></div><div class="entry-actions"><button type="button" @click="uploadInput?.click()" :disabled="uploading">{{ uploading ? "正在上传…" : "＋ 上传图片" }}</button><button type="button" class="subtle" @click="closeImagePicker">关闭</button></div></div>
             <p v-if="!images.length" class="hint">图片库为空，请先进入「图片库」上传图片。</p>
             <div v-else class="uploaded-gallery picker-gallery">
               <button v-for="item in images" :key="item.id" type="button" class="uploaded-image picker-image" @click="selectImage(item)">
