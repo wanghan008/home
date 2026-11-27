@@ -38,6 +38,7 @@
 
         <section v-else-if="activeTab==='links'" class="manager">
           <div class="section-heading"><div><h2>网站链接</h2><p class="hint">管理主页上的游戏、博客和其他网站入口。</p></div><button @click="resetLink">＋ 添加链接</button></div>
+          <div v-if="linkDraft.id" class="edit-notice">正在编辑链接：{{ linkDraft.title || "未命名链接" }}<button type="button" class="subtle" @click="resetLink">取消编辑</button></div>
           <form id="link-form" class="editor" @submit.prevent="saveLink">
             <label>链接名称<input v-model="linkDraft.title" maxlength="100" placeholder="例如：我的新项目" required/></label>
             <label>网址<input v-model="linkDraft.url" maxlength="1000" placeholder="https://example.com" required/></label>
@@ -91,7 +92,7 @@ function editModule(item){Object.assign(moduleDraft,{...item,enabled:Boolean(ite
 async function saveModule(){busy.value=true;message.value="正在保存主页模块…";try{const p={...moduleDraft,enabled:moduleDraft.enabled?1:0};await api(moduleDraft.id?"/api/admin/homepage/modules/"+moduleDraft.id:"/api/admin/homepage/modules",{method:moduleDraft.id?"PUT":"POST",body:JSON.stringify(p)});message.value="✓ 主页模块保存成功";resetModule();try{await load();}catch(e){message.value="✓ 主页模块已保存，但列表刷新失败："+e.message;}}catch(e){message.value="✕ 保存失败："+e.message;}finally{busy.value=false;}}
 async function removeModule(item){if(!window.confirm("删除模块后，原来归属它的链接会保留并变为独立链接。确定删除？"))return;try{await api("/api/admin/homepage/modules/"+item.id,{method:"DELETE"});if(moduleDraft.id===item.id)resetModule();await load();message.value="模块已删除";}catch(e){message.value=e.message;}}
 function resetLink(){Object.assign(linkDraft,blankLink());}
-function editLink(item){Object.assign(linkDraft,{...item,module_id:item.module_id==null?"":String(item.module_id),enabled:Boolean(item.enabled)});window.scrollTo({top:0,behavior:"smooth"});}
+function editLink(item){Object.assign(linkDraft,{...item,module_id:item.module_id==null?"":String(item.module_id),enabled:Boolean(item.enabled)});document.getElementById("link-form")?.scrollIntoView({behavior:"smooth",block:"start"});}
 async function saveLink(){busy.value=true;message.value="正在保存网站链接…";try{const p={...linkDraft,module_id:linkDraft.module_id||null,enabled:linkDraft.enabled?1:0};await api(linkDraft.id?"/api/admin/homepage/links/"+linkDraft.id:"/api/admin/homepage/links",{method:linkDraft.id?"PUT":"POST",body:JSON.stringify(p)});message.value="✓ 网站链接保存成功";resetLink();try{await load();}catch(e){message.value="✓ 网站链接已保存，但列表刷新失败："+e.message;}}catch(e){message.value="✕ 保存失败："+e.message;}finally{busy.value=false;}}
 async function removeLink(item){if(!window.confirm("确定删除这个网站链接吗？"))return;try{await api("/api/admin/homepage/links/"+item.id,{method:"DELETE"});if(linkDraft.id===item.id)resetLink();await load();message.value="链接已删除";}catch(e){message.value=e.message;}}
 onMounted(async()=>{try{await api("/api/admin/me");authenticated.value=true;await load();}catch(e){authenticated.value=false;}});
@@ -122,7 +123,8 @@ a{color:#c4d4e8;text-decoration:none}
 .manager{min-width:0;scroll-margin-top:125px}
 .section-heading{margin-bottom:20px}
 .section-heading .hint{margin:6px 0 0}
-.editor{padding:20px;border:1px solid #ffffff18;border-radius:12px;background:#ffffff08;min-width:0;overflow:visible}
+.editor{padding:20px;border:1px solid #ffffff18;border-radius:12px;background:#ffffff08;min-width:0;overflow:visible;scroll-margin-top:145px}
+.edit-notice{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:0 0 12px;padding:12px 14px;border:1px solid #9db8d655;border-radius:10px;background:#8aa6c21a;color:#e3edf8;flex-wrap:wrap}
 .check{display:flex;align-items:center;gap:9px}
 .save-hint{margin:0;color:#b8c8d9;font-size:14px;line-height:1.6}
 .actions,.entry-actions{display:flex;gap:10px;align-items:center}
