@@ -8,13 +8,14 @@
       </template>
       <template v-else>
         <div class="heading"><div><p class="eyebrow">PERSONAL WEBSITE</p><h1>内容管理</h1></div><button class="subtle" @click="logout">退出</button></div>
+        <p v-if="message" class="message message-top" role="status" aria-live="polite">{{ message }}</p>
         <nav class="tabs">
           <button v-for="tab in tabs" :key="tab.id" :class="{active:activeTab===tab.id}" @click="activeTab=tab.id">{{ tab.label }}</button>
         </nav>
         <div class="top-actions">
-          <button v-if="activeTab==='modules'" class="save-button" type="submit" form="module-form" :disabled="busy">{{ busy ? "正在保存…" : (moduleDraft.id ? "保存模块修改" : "保存主页模块") }}</button>
-          <button v-else-if="activeTab==='links'" class="save-button" type="submit" form="link-form" :disabled="busy">{{ busy ? "正在保存…" : (linkDraft.id ? "保存链接修改" : "保存网站链接") }}</button>
-          <button v-else class="save-button" type="submit" form="mood-form" :disabled="busy">{{ busy ? "正在保存…" : (draft.id ? "保存文章修改" : "保存文章") }}</button>
+          <button v-if="activeTab==='modules'" class="save-button" type="button" @click="saveModule" :disabled="busy">{{ busy ? "正在保存…" : (moduleDraft.id ? "保存模块修改" : "保存主页模块") }}</button>
+          <button v-else-if="activeTab==='links'" class="save-button" type="button" @click="saveLink" :disabled="busy">{{ busy ? "正在保存…" : (linkDraft.id ? "保存链接修改" : "保存网站链接") }}</button>
+          <button v-else class="save-button" type="button" @click="save" :disabled="busy">{{ busy ? "正在保存…" : (draft.id ? "保存文章修改" : "保存文章") }}</button>
         </div>
 
         <section v-if="activeTab==='modules'" class="manager">
@@ -66,7 +67,6 @@
           <div v-for="item in items" :key="item.id" class="entry"><div><strong>{{ item.title }}</strong><small>{{ item.mood_date }} · {{ item.published ? "已发布" : "草稿" }}</small></div><div class="entry-actions"><button class="subtle" @click="edit(item)">编辑</button><button class="danger" @click="remove(item)">删除</button></div></div>
         </section>
       </template>
-      <p v-if="message" class="message">{{ message }}</p>
     </section>
   </main>
 </template>
@@ -85,15 +85,15 @@ async function login(){busy.value=true;message.value="";try{await api("/api/admi
 async function logout(){try{await api("/api/admin/logout",{method:"POST"});}finally{authenticated.value=false;items.value=[];modules.value=[];links.value=[];reset();resetModule();resetLink();}}
 function reset(){Object.assign(draft,blank());}
 function edit(item){Object.assign(draft,{...item,published:Boolean(item.published)});window.scrollTo({top:0,behavior:"smooth"});}
-async function save(){busy.value=true;message.value="";try{const payload={title:draft.title,content:draft.content,mood_date:draft.mood_date,published:draft.published};await api(draft.id?"/api/admin/moods/"+draft.id:"/api/admin/moods",{method:draft.id?"PUT":"POST",body:JSON.stringify(payload)});message.value="文章保存成功";reset();await load();}catch(e){message.value="保存失败："+e.message;}finally{busy.value=false;}}
+async function save(){busy.value=true;message.value="正在保存文章…";try{const payload={title:draft.title,content:draft.content,mood_date:draft.mood_date,published:draft.published};await api(draft.id?"/api/admin/moods/"+draft.id:"/api/admin/moods",{method:draft.id?"PUT":"POST",body:JSON.stringify(payload)});message.value="✓ 文章保存成功";reset();try{await load();}catch(e){message.value="✓ 文章已保存，但列表刷新失败："+e.message;}}catch(e){message.value="✕ 保存失败："+e.message;}finally{busy.value=false;}}
 async function remove(item){if(!window.confirm("确定删除这篇文章吗？此操作不可恢复。"))return;try{await api("/api/admin/moods/"+item.id,{method:"DELETE"});if(draft.id===item.id)reset();await load();message.value="文章已删除";}catch(e){message.value=e.message;}}
 function resetModule(){Object.assign(moduleDraft,blankModule());imageError.value=false;}
 function editModule(item){Object.assign(moduleDraft,{...item,enabled:Boolean(item.enabled)});imageError.value=false;window.scrollTo({top:0,behavior:"smooth"});}
-async function saveModule(){busy.value=true;message.value="";try{const p={...moduleDraft,enabled:moduleDraft.enabled?1:0};await api(moduleDraft.id?"/api/admin/homepage/modules/"+moduleDraft.id:"/api/admin/homepage/modules",{method:moduleDraft.id?"PUT":"POST",body:JSON.stringify(p)});message.value="主页模块保存成功";resetModule();await load();}catch(e){message.value="保存失败："+e.message;}finally{busy.value=false;}}
+async function saveModule(){busy.value=true;message.value="正在保存主页模块…";try{const p={...moduleDraft,enabled:moduleDraft.enabled?1:0};await api(moduleDraft.id?"/api/admin/homepage/modules/"+moduleDraft.id:"/api/admin/homepage/modules",{method:moduleDraft.id?"PUT":"POST",body:JSON.stringify(p)});message.value="✓ 主页模块保存成功";resetModule();try{await load();}catch(e){message.value="✓ 主页模块已保存，但列表刷新失败："+e.message;}}catch(e){message.value="✕ 保存失败："+e.message;}finally{busy.value=false;}}
 async function removeModule(item){if(!window.confirm("删除模块后，原来归属它的链接会保留并变为独立链接。确定删除？"))return;try{await api("/api/admin/homepage/modules/"+item.id,{method:"DELETE"});if(moduleDraft.id===item.id)resetModule();await load();message.value="模块已删除";}catch(e){message.value=e.message;}}
 function resetLink(){Object.assign(linkDraft,blankLink());}
 function editLink(item){Object.assign(linkDraft,{...item,module_id:item.module_id==null?"":String(item.module_id),enabled:Boolean(item.enabled)});window.scrollTo({top:0,behavior:"smooth"});}
-async function saveLink(){busy.value=true;message.value="";try{const p={...linkDraft,module_id:linkDraft.module_id||null,enabled:linkDraft.enabled?1:0};await api(linkDraft.id?"/api/admin/homepage/links/"+linkDraft.id:"/api/admin/homepage/links",{method:linkDraft.id?"PUT":"POST",body:JSON.stringify(p)});message.value="网站链接保存成功";resetLink();await load();}catch(e){message.value="保存失败："+e.message;}finally{busy.value=false;}}
+async function saveLink(){busy.value=true;message.value="正在保存网站链接…";try{const p={...linkDraft,module_id:linkDraft.module_id||null,enabled:linkDraft.enabled?1:0};await api(linkDraft.id?"/api/admin/homepage/links/"+linkDraft.id:"/api/admin/homepage/links",{method:linkDraft.id?"PUT":"POST",body:JSON.stringify(p)});message.value="✓ 网站链接保存成功";resetLink();try{await load();}catch(e){message.value="✓ 网站链接已保存，但列表刷新失败："+e.message;}}catch(e){message.value="✕ 保存失败："+e.message;}finally{busy.value=false;}}
 async function removeLink(item){if(!window.confirm("确定删除这个网站链接吗？"))return;try{await api("/api/admin/homepage/links/"+item.id,{method:"DELETE"});if(linkDraft.id===item.id)resetLink();await load();message.value="链接已删除";}catch(e){message.value=e.message;}}
 onMounted(async()=>{try{await api("/api/admin/me");authenticated.value=true;await load();}catch(e){authenticated.value=false;}});
 </script>
@@ -134,6 +134,7 @@ a{color:#c4d4e8;text-decoration:none}
 .entry strong,.entry small{display:block;overflow-wrap:anywhere}
 .entry small{margin-top:7px;color:#9cabbc}
 .message{margin-top:20px;color:#c4d4e8;overflow-wrap:anywhere}
+.message-top{position:sticky;top:0;z-index:18;margin:0;padding:12px 14px;border:1px solid #ffffff24;border-radius:10px;background:#243447f5;box-shadow:0 4px 16px #0003;font-weight:600;line-height:1.5}
 .two-fields{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .image-preview{display:flex;align-items:center;gap:12px;color:#e3b9b9;font-size:13px;min-width:0;flex-wrap:wrap}
 .image-preview img{width:150px;max-width:100%;max-height:100px;object-fit:cover;border-radius:8px;border:1px solid #ffffff25}
