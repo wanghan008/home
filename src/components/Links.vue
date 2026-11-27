@@ -15,7 +15,7 @@
         <el-row class="link-all" :gutter="20">
           <el-col v-for="(item, index) in site" :span="8" :key="item.id || item.url || item.link || item.title">
             <div class="item cards" :class="{ 'image-only': isImageOnly(item) }" :style="index < 3 ? 'margin-bottom: 20px' : null" @click="jumpLink(item)">
-              <template v-if="item.icon">
+              <template v-if="!isImageOnly(item) && item.icon">
                 <img v-if="isUploadedIcon(item.icon)" class="favicon custom-uploaded-icon" :src="item.icon" :alt="(item.title || item.name) + ' 自定义图标'" loading="lazy"/>
                 <Icon v-else-if="siteIcon[item.icon]" size="26"><component :is="siteIcon[item.icon]" /></Icon>
                 <span v-else class="custom-icon">{{ item.icon }}</span>
