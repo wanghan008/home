@@ -26,6 +26,7 @@
             <label>副标题<input v-model="moduleDraft.subtitle" maxlength="160" placeholder="可选，例如：PROJECTS & IDEAS"/></label>
             <label>文字介绍<textarea v-model="moduleDraft.description" maxlength="5000" rows="5" placeholder="介绍这个模块的内容，可以换行。"/></label>
             <label>图片网址<input v-model="moduleDraft.image_url" maxlength="1000" placeholder="https://example.com/image.jpg"/></label>
+            <button type="button" class="subtle picker-trigger" @click="openImagePicker('module')">从图片库选择图片</button>
             <div v-if="moduleDraft.image_url" class="image-preview"><img :src="moduleDraft.image_url" alt="模块图片预览" @error="imageError=true" @load="imageError=false"/><span v-if="imageError">图片无法加载，请检查网址</span></div>
             <label>模块点击跳转网址<input v-model="moduleDraft.link_url" maxlength="1000" placeholder="可留空，也可填写 https://..."/></label>
             <div class="two-fields"><label>图标/表情<input v-model="moduleDraft.icon" maxlength="40" placeholder="例如：✦ 或 Blog"/></label><label>显示顺序<input v-model.number="moduleDraft.sort_order" type="number"/></label></div>
@@ -109,6 +110,8 @@
             <label>文章标题<input v-model="draft.title" maxlength="120" placeholder="给今天的心情起个标题" required/></label>
             <label>发布日期<input v-model="draft.mood_date" type="date" required/></label>
             <label>正文<textarea v-model="draft.content" maxlength="20000" rows="10" placeholder="写下今天的心情、想法或生活片段…" required/></label>
+            <button type="button" class="subtle picker-trigger" @click="openImagePicker('mood')">从图片库插入图片</button>
+            <p class="field-hint">选择图片后会在正文中插入图片标记，发布后博客页面会显示图片。</p>
             <p class="save-hint">文章保存后自动公开发布，访客可在博客页面查看。</p>
             <div class="actions"><button type="button" class="subtle" @click="reset">新建文章</button></div>
           </form>
@@ -116,14 +119,42 @@
           <div v-if="!items.length" class="hint">还没有文章，写下第一篇吧。</div>
           <div v-for="item in items" :key="item.id" class="entry"><div><strong>{{ item.title }}</strong><small>{{ item.mood_date }} · {{ item.published ? "已发布" : "草稿" }}</small></div><div class="entry-actions"><button class="subtle" @click="edit(item)">编辑</button><button class="danger" @click="remove(item)">删除</button></div></div>
         </section>
+        <section v-else-if="activeTab==='images'" class="manager">
+          <div class="section-heading"><div><h2>图片库</h2><p class="hint">图片上传后可在主页模块和心情日志中重复使用。</p></div><button type="button" @click="uploadInput?.click()" :disabled="uploading">{{ uploading ? "正在压缩上传…" : "＋ 上传图片" }}</button></div>
+          <input ref="uploadInput" class="hidden-file" type="file" accept="image/*" @change="uploadImage"/>
+          <p class="field-hint">自动压缩为 WebP；单张不超过 200 KB，最多 20 张，总容量不超过 4 MB。图片保存在现有 D1 数据库，不使用 R2。</p>
+          <p class="save-hint">当前：{{ images.length }} / 20 张 · {{ formatBytes(imageTotalBytes) }} / 4 MB</p>
+          <div v-if="!images.length" class="empty-images">图片库还是空的，点击「上传图片」添加第一张。</div>
+          <div v-else class="uploaded-gallery">
+            <div v-for="item in images" :key="item.id" class="uploaded-image">
+              <img :src="'/api/images/'+item.id" :alt="item.name" loading="lazy"/>
+              <strong>{{ item.name }}</strong>
+              <small>{{ formatBytes(item.size_bytes) }} · {{ item.mime_type }}</small>
+              <button type="button" class="danger" @click="removeImage(item)">删除图片</button>
+            </div>
+          </div>
+        </section>
+        <div v-if="imagePickerOpen" class="image-picker-backdrop" @click.self="closeImagePicker">
+          <section class="image-picker" role="dialog" aria-modal="true" aria-label="选择图片">
+            <div class="section-heading"><div><h2>选择图片</h2><p class="hint">选择一张已上传的图片</p></div><button type="button" class="subtle" @click="closeImagePicker">关闭</button></div>
+            <p v-if="!images.length" class="hint">图片库为空，请先进入「图片库」上传图片。</p>
+            <div v-else class="uploaded-gallery picker-gallery">
+              <button v-for="item in images" :key="item.id" type="button" class="uploaded-image picker-image" @click="selectImage(item)">
+                <img :src="'/api/images/'+item.id" :alt="item.name" loading="lazy"/>
+                <strong>{{ item.name }}</strong><small>{{ formatBytes(item.size_bytes) }}</small>
+                <span>选择这张图片</span>
+              </button>
+            </div>
+          </section>
+        </div>
       </template>
     </section>
   </main>
 </template>
 <script setup>
 import { ref, reactive, computed, onMounted } from "vue";
-const authenticated=ref(false), password=ref(""), busy=ref(false), items=ref([]), modules=ref([]), links=ref([]), message=ref(""), activeTab=ref("modules"), imageError=ref(false);
-const tabs=[{id:"modules",label:"主页模块"},{id:"links",label:"网站链接"},{id:"appearance",label:"主页外观"},{id:"moods",label:"心情文章"}];
+const authenticated=ref(false), password=ref(""), busy=ref(false), items=ref([]), modules=ref([]), links=ref([]), message=ref(""), activeTab=ref("modules"), imageError=ref(false);\nconst images=ref([]), imageTotalBytes=ref(0), uploading=ref(false), uploadInput=ref(null), imagePickerOpen=ref(false), imagePickerTarget=ref("");
+const tabs=[{id:"modules",label:"主页模块"},{id:"links",label:"网站链接"},{id:"appearance",label:"主页外观"},{id:"moods",label:"心情文章"},{id:"images",label:"图片库"}];
 const themes=[
   {id:"classic",label:"经典原版风",description:"保留当前主页视觉"},
   {id:"tech",label:"科技未来风",description:"蓝紫渐变与科技光感"},
@@ -178,7 +209,54 @@ const blankModule=()=>({id:null,title:"",subtitle:"",description:"",image_url:""
 const blankLink=()=>({id:null,module_id:"",title:"",url:"",description:"",icon:"",sort_order:links.value.length+1,enabled:true});
 const draft=reactive(blank()), moduleDraft=reactive(blankModule()), linkDraft=reactive(blankLink());
 async function api(path,options={}){const res=await fetch(path,{credentials:"same-origin",...options,headers:{"content-type":"application/json",...(options.headers||{})}});const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.error||"请求失败");return data;}
-async function load(){const [a,b,c,d]=await Promise.all([api("/api/admin/moods"),api("/api/admin/homepage/modules"),api("/api/admin/homepage/links"),api("/api/admin/appearance")]);items.value=a.items||[];modules.value=b.items||[];links.value=c.items||[];Object.assign(appearanceDraft,defaultAppearance(),d.appearance||{});}
+async function uploadImage(event){
+  const input=event.target, file=input.files?.[0];
+  if(!file)return;
+  uploading.value=true;message.value="正在压缩图片…";
+  try{
+    const bitmap=await createImageBitmap(file);
+    const canvas=document.createElement("canvas");
+    let width=bitmap.width,height=bitmap.height;
+    const scale=Math.min(1,1600/Math.max(width,height));
+    width=Math.max(1,Math.round(width*scale));height=Math.max(1,Math.round(height*scale));
+    canvas.width=width;canvas.height=height;
+    const context=canvas.getContext("2d");
+    context.drawImage(bitmap,0,0,width,height);bitmap.close?.();
+    let blob=await new Promise(resolve=>canvas.toBlob(resolve,"image/webp",0.82));
+    if(!blob)throw new Error("浏览器无法压缩此图片格式。");
+    for(let attempt=0;blob.size>200*1024&&attempt<8;attempt++){
+      width=Math.max(320,Math.round(width*0.85));height=Math.max(320,Math.round(height*0.85));
+      canvas.width=width;canvas.height=height;context.clearRect(0,0,width,height);context.drawImage(file,0,0,width,height);
+      blob=await new Promise(resolve=>canvas.toBlob(resolve,"image/webp",Math.max(0.5,0.78-attempt*0.04)));
+      if(!blob)throw new Error("图片压缩失败。");
+    }
+    if(blob.size>200*1024)throw new Error("图片压缩后仍超过 200 KB，请换一张较小的图片。");
+    const form=new FormData();form.append("image",new File([blob],"image-"+Date.now()+".webp",{type:"image/webp"}));
+    const response=await fetch("/api/admin/images",{method:"POST",credentials:"same-origin",body:form});
+    const result=await response.json().catch(()=>({}));
+    if(!response.ok)throw new Error(result.error||"图片上传失败");
+    await loadImages();message.value="✓ 图片上传成功，已加入图片库";
+  }catch(e){message.value="✕ 图片上传失败："+(e.message||"请重试");}
+  finally{uploading.value=false;input.value="";}
+}
+async function loadImages(){
+  const result=await api("/api/admin/images");images.value=result.items||[];imageTotalBytes.value=Number(result.totalBytes||0);
+}
+function formatBytes(value){const n=Number(value)||0;return n<1024?n+" B":(n/1024).toFixed(1)+" KB";}
+async function removeImage(item){
+  if(!window.confirm("删除这张图片后，引用它的主页模块或文章中的图片也会无法显示。确定删除？"))return;
+  try{await api("/api/admin/images/"+item.id,{method:"DELETE"});await loadImages();message.value="图片已删除";}catch(e){message.value="删除失败："+e.message;}
+}
+function openImagePicker(target){imagePickerTarget.value=target;imagePickerOpen.value=true;loadImages().catch(e=>message.value=e.message);}
+function closeImagePicker(){imagePickerOpen.value=false;imagePickerTarget.value="";}
+function selectImage(item){
+  if(imagePickerTarget.value==="module")moduleDraft.image_url="/api/images/"+item.id;
+  else if(imagePickerTarget.value==="mood")draft.content+=(draft.content?"\\n\\n":"")+"![图片](/api/images/"+item.id+")";
+  closeImagePicker();
+  message.value="已插入图片："+item.name;
+}
+
+async function load(){const [a,b,c,d,e]=await Promise.all([api("/api/admin/moods"),api("/api/admin/homepage/modules"),api("/api/admin/homepage/links"),api("/api/admin/appearance"),api("/api/admin/images")]);items.value=a.items||[];modules.value=b.items||[];links.value=c.items||[];images.value=e.items||[];imageTotalBytes.value=Number(e.totalBytes||0);Object.assign(appearanceDraft,defaultAppearance(),d.appearance||{});}
 async function login(){busy.value=true;message.value="";try{await api("/api/admin/login",{method:"POST",body:JSON.stringify({password:password.value})});password.value="";authenticated.value=true;await load();}catch(e){message.value=e.message;}finally{busy.value=false;}}
 async function logout(){try{await api("/api/admin/logout",{method:"POST"});}finally{authenticated.value=false;items.value=[];modules.value=[];links.value=[];reset();resetModule();resetLink();}}
 function reset(){Object.assign(draft,blank());}
