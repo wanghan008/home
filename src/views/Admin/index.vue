@@ -44,7 +44,7 @@
           <div v-if="linkDraft.id" class="edit-notice">正在编辑链接：{{ linkDraft.title || "未命名链接" }}<button type="button" class="subtle" @click="resetLink">取消编辑</button></div>
           <form id="link-form" class="editor" @submit.prevent="saveLink">
             <label>链接名称<input v-model="linkDraft.title" maxlength="100" placeholder="例如：我的新项目" required/></label>
-            <label>网址<input v-model="linkDraft.url" maxlength="1000" placeholder="https://example.com" required/></label>
+            <label>网址（可留空，仅展示图片）<input v-model="linkDraft.url" maxlength="1000" placeholder="填写 https://...；留空时需选择一张图片"/></label>
             <label>简短说明<input v-model="linkDraft.description" maxlength="300" placeholder="可选"/></label>
             <label>所属模块<select v-model="linkDraft.module_id"><option value="">不归属模块</option><option v-for="m in modules" :key="m.id" :value="String(m.id)">{{ m.title }}</option></select></label>
             <div class="two-fields"><label>图标/表情（可选）<input v-model="linkDraft.icon" maxlength="40" placeholder="留空自动获取网站图标；也可填 🎮 或 Fire"/></label><label>显示顺序<input v-model.number="linkDraft.sort_order" type="number"/></label></div>
