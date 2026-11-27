@@ -4,6 +4,7 @@
       v-show="store.imgLoadStatus"
       :src="bgUrl"
       class="bg"
+      :style="imageStyle"
       alt="cover"
       @load="imgLoadComplete"
       @error.once="imgLoadError"
@@ -12,10 +13,11 @@
     <div :class="store.backgroundShow ? 'gray hidden' : 'gray'" />
     <Transition name="fade" mode="out-in">
       <a
-        v-if="store.backgroundShow && store.coverType != '3'"
+        v-if="store.backgroundShow && (appearance.backgroundUrl || store.coverType != '3')"
         class="down"
         :href="bgUrl"
         target="_blank"
+        rel="noopener noreferrer"
       >
         下载壁纸
       </a>
@@ -30,14 +32,20 @@ import { Error } from "@icon-park/vue-next";
 const store = mainStore();
 const bgUrl = ref(null);
 const imgTimeout = ref(null);
+const appearance = ref({
+  theme: "classic",
+  backgroundUrl: "",
+  backgroundFit: "cover",
+  backgroundBlur: 20,
+  backgroundDim: 70,
+});
 const emit = defineEmits(["loadComplete"]);
 
 // 壁纸随机数
-// 请依据文件夹内的图片个数修改 Math.random() 后面的第一个数字
 const bgRandom = Math.floor(Math.random() * 10 + 1);
 
-// 更换壁纸链接
 const changeBg = (type) => {
+  if (appearance.value.backgroundUrl) return;
   if (type == 0) {
     bgUrl.value = `/images/background${bgRandom}.jpg`;
   } else if (type == 1) {
@@ -49,47 +57,56 @@ const changeBg = (type) => {
   }
 };
 
-// 图片加载完成
-const imgLoadComplete = () => {
-  imgTimeout.value = setTimeout(
-    () => {
-      store.setImgLoadStatus(true);
-    },
-    Math.floor(Math.random() * (600 - 300 + 1)) + 300,
-  );
+const applyTheme = () => {
+  document.documentElement.setAttribute("data-home-theme", appearance.value.theme || "classic");
 };
 
-// 图片动画完成
+const imageStyle = computed(() => ({
+  objectFit: appearance.value.backgroundFit === "contain" ? "contain" : appearance.value.backgroundFit === "center" ? "none" : "cover",
+  objectPosition: "center center",
+  filter: `blur(${Number(appearance.value.backgroundBlur) || 0}px) brightness(${1 - (Number(appearance.value.backgroundDim) || 0) / 100})`,
+}));
+
+const imgLoadComplete = () => {
+  imgTimeout.value = setTimeout(() => {
+    store.setImgLoadStatus(true);
+  }, Math.floor(Math.random() * (600 - 300 + 1)) + 300);
+};
+
 const imgAnimationEnd = () => {
-  console.log("壁纸加载且动画完成");
-  // 加载完成事件
   emit("loadComplete");
 };
 
-// 图片显示失败
 const imgLoadError = () => {
   console.error("壁纸加载失败：", bgUrl.value);
   ElMessage({
     message: "壁纸加载失败，已临时切换回默认",
-    icon: h(Error, {
-      theme: "filled",
-      fill: "#efefef",
-    }),
+    icon: h(Error, { theme: "filled", fill: "#efefef" }),
   });
-  bgUrl.value = `/images/background${bgRandom}.jpg`;
+  appearance.value.backgroundUrl = "";
+  changeBg(0);
 };
 
-// 监听壁纸切换
-watch(
-  () => store.coverType,
-  (value) => {
-    changeBg(value);
-  },
-);
+watch(() => store.coverType, (value) => {
+  if (!appearance.value.backgroundUrl) changeBg(value);
+});
 
-onMounted(() => {
-  // 加载壁纸
-  changeBg(store.coverType);
+onMounted(async () => {
+  try {
+    const response = await fetch("/api/appearance", { cache: "no-store" });
+    if (response.ok) {
+      const data = await response.json();
+      appearance.value = { ...appearance.value, ...(data.appearance || {}) };
+    }
+  } catch (error) {
+    console.warn("主页外观设置暂时无法加载，使用默认设置。", error);
+  }
+  applyTheme();
+  if (appearance.value.backgroundUrl) {
+    bgUrl.value = appearance.value.backgroundUrl;
+  } else {
+    changeBg(store.coverType);
+  }
 });
 
 onBeforeUnmount(() => {
@@ -107,9 +124,7 @@ onBeforeUnmount(() => {
   transition: 0.25s;
   z-index: -1;
 
-  &.show {
-    z-index: 1;
-  }
+  &.show { z-index: 1; }
 
   .bg {
     position: absolute;
@@ -119,10 +134,7 @@ onBeforeUnmount(() => {
     height: 100%;
     object-fit: cover;
     backface-visibility: hidden;
-    filter: blur(20px) brightness(0.3);
-    transition:
-      filter 0.3s,
-      transform 0.3s;
+    transition: filter 0.3s, transform 0.3s;
     animation: fade-blur-in 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
     animation-delay: 0.45s;
   }
@@ -135,12 +147,8 @@ onBeforeUnmount(() => {
     height: 100%;
     background-image: radial-gradient(rgba(0, 0, 0, 0) 0, rgba(0, 0, 0, 0.5) 100%),
       radial-gradient(rgba(0, 0, 0, 0) 33%, rgba(0, 0, 0, 0.3) 166%);
-
     transition: 1.5s;
-    &.hidden {
-      opacity: 0;
-      transition: 1.5s;
-    }
+    &.hidden { opacity: 0; transition: 1.5s; }
   }
   .down {
     font-size: 16px;
@@ -150,7 +158,6 @@ onBeforeUnmount(() => {
     left: 0;
     right: 0;
     margin: 0 auto;
-    display: block;
     padding: 20px 26px;
     border-radius: 8px;
     background-color: #00000030;
@@ -159,13 +166,58 @@ onBeforeUnmount(() => {
     display: flex;
     justify-content: center;
     align-items: center;
-    &:hover {
-      transform: scale(1.05);
-      background-color: #00000060;
-    }
-    &:active {
-      transform: scale(1);
-    }
+    &:hover { transform: scale(1.05); background-color: #00000060; }
+    &:active { transform: scale(1); }
   }
+}
+</style>
+
+<style lang="scss">
+:root[data-home-theme="tech"] {
+  --home-card-bg: linear-gradient(135deg, rgba(31, 91, 160, .42), rgba(91, 48, 150, .25));
+  --home-card-border: rgba(102, 190, 255, .48);
+  --home-card-text: #eef8ff;
+  --home-link-bg: rgba(20, 66, 112, .48);
+}
+:root[data-home-theme="minimal"] {
+  --home-card-bg: rgba(248, 251, 255, .88);
+  --home-card-border: rgba(255, 255, 255, .8);
+  --home-card-text: #1d2b3a;
+  --home-link-bg: rgba(248, 251, 255, .82);
+}
+:root[data-home-theme="glass"] {
+  --home-card-bg: rgba(255, 255, 255, .10);
+  --home-card-border: rgba(255, 255, 255, .36);
+  --home-card-text: #f5f8ff;
+  --home-link-bg: rgba(255, 255, 255, .12);
+}
+:root[data-home-theme="nature"] {
+  --home-card-bg: linear-gradient(135deg, rgba(38, 82, 55, .72), rgba(105, 112, 68, .48));
+  --home-card-border: rgba(190, 218, 160, .48);
+  --home-card-text: #f5f4df;
+  --home-link-bg: rgba(50, 83, 57, .56);
+}
+:root[data-home-theme="classic"] {
+  --home-card-bg: linear-gradient(135deg, #ffffff16, #ffffff08);
+  --home-card-border: #ffffff30;
+  --home-card-text: inherit;
+  --home-link-bg: rgba(255, 255, 255, .08);
+}
+.homepage-modules .module-card {
+  background: var(--home-card-bg, linear-gradient(135deg,#ffffff16,#ffffff08)) !important;
+  border-color: var(--home-card-border, #ffffff30) !important;
+  color: var(--home-card-text, inherit);
+}
+.links .link-all .item.cards {
+  background: var(--home-link-bg, transparent);
+  border: 1px solid var(--home-card-border, transparent);
+  color: var(--home-card-text, inherit);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+:root[data-home-theme="minimal"] .homepage-modules .module-copy p,
+:root[data-home-theme="minimal"] .homepage-modules .module-subtitle,
+:root[data-home-theme="minimal"] .homepage-modules .module-more {
+  color: #34475b;
 }
 </style>

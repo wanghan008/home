@@ -15,6 +15,7 @@
         <div class="top-actions">
           <button v-if="activeTab==='modules'" class="save-button" type="button" @click="saveModule" :disabled="busy">{{ busy ? "正在保存…" : (moduleDraft.id ? "保存模块修改" : "保存主页模块") }}</button>
           <button v-else-if="activeTab==='links'" class="save-button" type="button" @click="saveLink" :disabled="busy">{{ busy ? "正在保存…" : (linkDraft.id ? "保存链接修改" : "保存网站链接") }}</button>
+          <button v-else-if="activeTab==='appearance'" class="save-button" type="button" @click="saveAppearance" :disabled="busy">{{ busy ? "正在保存…" : "保存外观设置" }}</button>
           <button v-else class="save-button" type="button" @click="save" :disabled="busy">{{ busy ? "正在保存…" : (draft.id ? "保存文章修改" : "保存文章") }}</button>
         </div>
 
@@ -53,6 +54,43 @@
           <div v-for="item in links" :key="item.id" class="entry"><div><strong>{{ item.icon }} {{ item.title }}</strong><small>{{ item.url }} · {{ item.enabled ? "显示中" : "已隐藏" }}</small></div><div class="entry-actions"><button class="subtle" @click="editLink(item)">编辑</button><button class="danger" @click="removeLink(item)">删除</button></div></div>
         </section>
 
+        
+        <section v-else-if="activeTab==='appearance'" class="manager">
+          <h2>主页外观设置</h2>
+          <p class="hint">切换主页整体风格，并通过图片网址更换背景。保存后所有访客都会看到相同效果。</p>
+          <div class="editor appearance-editor">
+            <h3>选择风格</h3>
+            <div class="theme-grid">
+              <button v-for="theme in themes" :key="theme.id" type="button" :class="{selected:appearanceDraft.theme===theme.id}" @click="appearanceDraft.theme=theme.id">
+                <span class="theme-dot" :class="'theme-'+theme.id"></span>
+                <strong>{{ theme.label }}</strong>
+                <small>{{ theme.description }}</small>
+              </button>
+            </div>
+            <label>背景图片网址<input v-model.trim="appearanceDraft.backgroundUrl" type="url" maxlength="1000" placeholder="https://example.com/background.jpg"/></label>
+            <p class="field-hint">留空则使用原主页的壁纸轮换。请填写可以直接打开图片的 http/https 图片地址。</p>
+            <label>背景显示方式
+              <select v-model="appearanceDraft.backgroundFit">
+                <option value="cover">铺满屏幕（推荐）</option>
+                <option value="contain">完整显示图片</option>
+                <option value="center">原尺寸居中</option>
+              </select>
+            </label>
+            <label>背景模糊度：{{ appearanceDraft.backgroundBlur }} px
+              <input v-model.number="appearanceDraft.backgroundBlur" type="range" min="0" max="30" step="1"/>
+            </label>
+            <label>背景暗度：{{ appearanceDraft.backgroundDim }}%
+              <input v-model.number="appearanceDraft.backgroundDim" type="range" min="0" max="90" step="1"/>
+            </label>
+            <h3>效果预览</h3>
+            <div class="appearance-preview" :class="'preview-'+appearanceDraft.theme" :style="appearancePreviewStyle">
+              <div class="preview-shade"></div>
+              <div class="preview-content"><strong>个人主页</strong><span>主页内容 · 网站链接</span><small>这是当前外观的预览效果</small></div>
+            </div>
+            <p class="field-hint">预览仅用于查看大致背景和配色，保存后会应用到完整主页。</p>
+            <div class="actions"><button type="button" class="subtle" @click="resetAppearance">恢复默认外观</button></div>
+          </div>
+        </section>
         <section v-else class="manager">
           <h2>心情文章</h2><p class="hint">管理公开博客文章与草稿。</p>
           <form id="mood-form" class="editor" @submit.prevent="save">
@@ -71,19 +109,45 @@
   </main>
 </template>
 <script setup>
-import { ref, reactive, onMounted } from "vue";
+import { ref, reactive, computed, onMounted } from "vue";
 const authenticated=ref(false), password=ref(""), busy=ref(false), items=ref([]), modules=ref([]), links=ref([]), message=ref(""), activeTab=ref("modules"), imageError=ref(false);
-const tabs=[{id:"modules",label:"主页模块"},{id:"links",label:"网站链接"},{id:"moods",label:"心情文章"}];
+const tabs=[{id:"modules",label:"主页模块"},{id:"links",label:"网站链接"},{id:"appearance",label:"主页外观"},{id:"moods",label:"心情文章"}];
+const themes=[
+  {id:"classic",label:"经典原版风",description:"保留当前主页视觉"},
+  {id:"tech",label:"科技未来风",description:"蓝紫渐变与科技光感"},
+  {id:"minimal",label:"简约清爽风",description:"明亮、干净、轻量"},
+  {id:"glass",label:"深色玻璃风",description:"半透明玻璃质感"},
+  {id:"nature",label:"自然舒适风",description:"绿色与大地色调"},
+];
+const defaultAppearance=()=>({theme:"classic",backgroundUrl:"",backgroundFit:"cover",backgroundBlur:20,backgroundDim:70});
+const appearanceDraft=reactive(defaultAppearance());
+const appearancePreviewStyle=computed(()=>({
+  backgroundImage: appearanceDraft.backgroundUrl ? `url("${appearanceDraft.backgroundUrl.replaceAll('"','%22')}")` : "linear-gradient(135deg,#26384d,#101722)",
+  backgroundSize: appearanceDraft.backgroundFit==="contain" ? "contain" : appearanceDraft.backgroundFit==="center" ? "auto" : "cover",
+  backgroundPosition:"center",
+  backgroundRepeat:"no-repeat",
+}));
 const localDate=()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-");};
 const blank=()=>({id:null,title:"",content:"",mood_date:localDate(),published:true});
 const blankModule=()=>({id:null,title:"",subtitle:"",description:"",image_url:"",link_url:"",icon:"",sort_order:modules.value.length+1,enabled:true});
 const blankLink=()=>({id:null,module_id:"",title:"",url:"",description:"",icon:"",sort_order:links.value.length+1,enabled:true});
 const draft=reactive(blank()), moduleDraft=reactive(blankModule()), linkDraft=reactive(blankLink());
 async function api(path,options={}){const res=await fetch(path,{credentials:"same-origin",...options,headers:{"content-type":"application/json",...(options.headers||{})}});const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.error||"请求失败");return data;}
-async function load(){const [a,b,c]=await Promise.all([api("/api/admin/moods"),api("/api/admin/homepage/modules"),api("/api/admin/homepage/links")]);items.value=a.items||[];modules.value=b.items||[];links.value=c.items||[];}
+async function load(){const [a,b,c,d]=await Promise.all([api("/api/admin/moods"),api("/api/admin/homepage/modules"),api("/api/admin/homepage/links"),api("/api/admin/appearance")]);items.value=a.items||[];modules.value=b.items||[];links.value=c.items||[];Object.assign(appearanceDraft,defaultAppearance(),d.appearance||{});}
 async function login(){busy.value=true;message.value="";try{await api("/api/admin/login",{method:"POST",body:JSON.stringify({password:password.value})});password.value="";authenticated.value=true;await load();}catch(e){message.value=e.message;}finally{busy.value=false;}}
 async function logout(){try{await api("/api/admin/logout",{method:"POST"});}finally{authenticated.value=false;items.value=[];modules.value=[];links.value=[];reset();resetModule();resetLink();}}
 function reset(){Object.assign(draft,blank());}
+function resetAppearance(){Object.assign(appearanceDraft,defaultAppearance());}
+async function saveAppearance(){
+  busy.value=true;message.value="正在保存主页外观…";
+  try{
+    const payload={...appearanceDraft,backgroundBlur:Number(appearanceDraft.backgroundBlur),backgroundDim:Number(appearanceDraft.backgroundDim)};
+    const result=await api("/api/admin/appearance",{method:"PUT",body:JSON.stringify(payload)});
+    Object.assign(appearanceDraft,result.appearance||payload);
+    message.value="✓ 主页外观保存成功，刷新主页即可查看";
+  }catch(e){message.value="✕ 外观保存失败："+e.message;}
+  finally{busy.value=false;}
+}
 function edit(item){Object.assign(draft,{...item,published:Boolean(item.published)});window.scrollTo({top:0,behavior:"smooth"});}
 async function save(){busy.value=true;message.value="正在保存文章…";try{const payload={title:draft.title,content:draft.content,mood_date:draft.mood_date,published:true};await api(draft.id?"/api/admin/moods/"+draft.id:"/api/admin/moods",{method:draft.id?"PUT":"POST",body:JSON.stringify(payload)});message.value="✓ 文章保存成功";reset();try{await load();}catch(e){message.value="✓ 文章已保存，但列表刷新失败："+e.message;}}catch(e){message.value="✕ 保存失败："+e.message;}finally{busy.value=false;}}
 async function remove(item){if(!window.confirm("确定删除这篇文章吗？此操作不可恢复。"))return;try{await api("/api/admin/moods/"+item.id,{method:"DELETE"});if(draft.id===item.id)reset();await load();message.value="文章已删除";}catch(e){message.value=e.message;}}
@@ -107,7 +171,7 @@ a{color:#c4d4e8;text-decoration:none}
 .panel h2{font-size:22px;font-weight:500;margin:0}
 .hint{color:#aab8c8;margin:10px 0 24px}
 .panel form{display:flex;flex-direction:column;gap:16px}
-.panel input:not([type=checkbox]),.panel textarea,.panel select{width:100%;max-width:100%;box-sizing:border-box;margin-top:8px;padding:13px 14px;border:1px solid #ffffff26;border-radius:9px;background:#0d1520;color:#fff;font:inherit;outline:none}
+.panel input:not([type=checkbox]):not([type=range]),.panel textarea,.panel select{width:100%;max-width:100%;box-sizing:border-box;margin-top:8px;padding:13px 14px;border:1px solid #ffffff26;border-radius:9px;background:#0d1520;color:#fff;font:inherit;outline:none}
 .panel textarea{resize:vertical;line-height:1.7;min-height:120px}
 .panel label{color:#cbd5e1}
 .panel button{border:0;border-radius:9px;padding:11px 18px;background:#d6e2f0;color:#182331;font:inherit;cursor:pointer;touch-action:manipulation}
@@ -139,6 +203,31 @@ a{color:#c4d4e8;text-decoration:none}
 .two-fields{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .image-preview{display:flex;align-items:center;gap:12px;color:#e3b9b9;font-size:13px;min-width:0;flex-wrap:wrap}
 .image-preview img{width:150px;max-width:100%;max-height:100px;object-fit:cover;border-radius:8px;border:1px solid #ffffff25}
+.appearance-editor{display:flex;flex-direction:column;gap:16px}
+.appearance-editor h3{font-size:17px;font-weight:600;margin:8px 0 0}
+.field-hint{margin:-8px 0 4px;color:#9eafc2;font-size:13px;line-height:1.6}
+.theme-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.theme-grid button{display:grid;grid-template-columns:24px 1fr;grid-template-rows:auto auto;align-items:center;text-align:left;gap:3px 9px;padding:13px;background:#ffffff0b;color:#e6edf5;border:1px solid #ffffff20}
+.theme-grid button.selected{border-color:#a9c9ee;background:#8baed32b;box-shadow:0 0 0 1px #a9c9ee55}
+.theme-grid button strong{font-size:14px}
+.theme-grid button small{grid-column:2;color:#aab8c8;font-size:12px;font-weight:400}
+.theme-dot{grid-row:1 / span 2;width:22px;height:22px;border-radius:50%;background:#64748b}
+.theme-tech{background:linear-gradient(135deg,#2796ec,#7546d9)}
+.theme-minimal{background:linear-gradient(135deg,#fff,#b8c8d8)}
+.theme-glass{background:linear-gradient(135deg,#1c2938,#aab9ca)}
+.theme-nature{background:linear-gradient(135deg,#456b45,#c0a56a)}
+.theme-classic{background:linear-gradient(135deg,#25384e,#66778a)}
+.appearance-editor input[type=range]{width:100%;margin:12px 0 0;accent-color:#a9c9ee}
+.appearance-preview{position:relative;min-height:170px;border-radius:13px;overflow:hidden;background-color:#172536;border:1px solid #ffffff35;background-size:cover}
+.preview-shade{position:absolute;inset:0;background:rgba(0,0,0,.35)}
+.preview-content{position:relative;z-index:1;display:flex;flex-direction:column;gap:9px;align-items:flex-start;padding:28px;color:#fff}
+.preview-content strong{font-size:22px}
+.preview-content span{padding:10px 14px;border:1px solid #ffffff45;border-radius:9px;background:#ffffff20;backdrop-filter:blur(10px)}
+.preview-content small{opacity:.8}
+.preview-minimal .preview-content{color:#172b3c}
+.preview-minimal .preview-shade{background:rgba(255,255,255,.18)}
+.preview-tech .preview-content span{border-color:#75c8ff;background:#183f6a99}
+.preview-nature .preview-content span{background:#31563eaa}
 @media(max-width:560px){
 .admin-page{padding:18px 10px calc(38px + env(safe-area-inset-bottom))}
 header{margin-bottom:20px;padding:0 5px}
@@ -152,7 +241,7 @@ header{margin-bottom:20px;padding:0 5px}
 .top-actions .save-button{width:100%;min-height:48px}
 .actions{align-items:stretch;flex-direction:column}
 .actions button{width:100%;min-height:44px}
-.two-fields{grid-template-columns:1fr}
+.two-fields{grid-template-columns:1fr}.theme-grid{grid-template-columns:1fr 1fr}
 .section-heading{align-items:flex-start;flex-direction:column}
 .tabs{margin-top:16px;gap:6px}
 .tabs button{padding:10px 13px}

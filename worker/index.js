@@ -65,6 +65,17 @@ export default {
     if (!env.DB) return json({ error: "D1 数据库尚未绑定。" }, 503);
 
 
+    if (url.pathname === "/api/appearance" && request.method === "GET") {
+      await env.DB.prepare("CREATE TABLE IF NOT EXISTS site_settings (setting_key TEXT PRIMARY KEY, setting_value TEXT NOT NULL, updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)").run();
+      const row = await env.DB.prepare("SELECT setting_value FROM site_settings WHERE setting_key = 'appearance'").first();
+      const defaults = { theme: "classic", backgroundUrl: "", backgroundFit: "cover", backgroundBlur: 20, backgroundDim: 70 };
+      let appearance = defaults;
+      if (row?.setting_value) {
+        try { appearance = { ...defaults, ...JSON.parse(row.setting_value) }; } catch {}
+      }
+      return json({ appearance }, 200, { "cache-control": "public, max-age=30" });
+    }
+
     if (url.pathname === "/api/homepage" && request.method === "GET") {
       const [modules, links] = await Promise.all([
         env.DB.prepare("SELECT id, title, subtitle, description, image_url, link_url, icon, sort_order FROM homepage_modules WHERE enabled = 1 ORDER BY sort_order, id").all(),
@@ -95,6 +106,40 @@ export default {
     if (url.pathname.startsWith("/api/admin/")) {
       if (!env.SESSION_SECRET || !(await validSession(request, env.SESSION_SECRET))) return json({ error: "登录已失效，请重新登录。" }, 401);
       if (url.pathname === "/api/admin/me" && request.method === "GET") return json({ ok: true });
+
+      if (url.pathname === "/api/admin/appearance" && request.method === "GET") {
+        await env.DB.prepare("CREATE TABLE IF NOT EXISTS site_settings (setting_key TEXT PRIMARY KEY, setting_value TEXT NOT NULL, updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)").run();
+        const row = await env.DB.prepare("SELECT setting_value FROM site_settings WHERE setting_key = 'appearance'").first();
+        const defaults = { theme: "classic", backgroundUrl: "", backgroundFit: "cover", backgroundBlur: 20, backgroundDim: 70 };
+        let appearance = defaults;
+        if (row?.setting_value) {
+          try { appearance = { ...defaults, ...JSON.parse(row.setting_value) }; } catch {}
+        }
+        return json({ appearance });
+      }
+      if (url.pathname === "/api/admin/appearance" && request.method === "PUT") {
+        const data = await readBody(request);
+        const themes = ["classic", "tech", "minimal", "glass", "nature"];
+        const fits = ["cover", "contain", "center"];
+        const theme = themes.includes(data?.theme) ? data.theme : null;
+        const backgroundUrl = cleanText(data?.backgroundUrl, 1000);
+        const backgroundFit = fits.includes(data?.backgroundFit) ? data.backgroundFit : null;
+        const blur = Number(data?.backgroundBlur);
+        const dim = Number(data?.backgroundDim);
+        if (!theme || !backgroundFit || !safeUrl(backgroundUrl) || !Number.isFinite(blur) || !Number.isFinite(dim)) {
+          return json({ error: "请检查风格、背景图片网址和显示参数。" }, 400);
+        }
+        const appearance = {
+          theme,
+          backgroundUrl,
+          backgroundFit,
+          backgroundBlur: Math.max(0, Math.min(30, Math.round(blur))),
+          backgroundDim: Math.max(0, Math.min(90, Math.round(dim))),
+        };
+        await env.DB.prepare("CREATE TABLE IF NOT EXISTS site_settings (setting_key TEXT PRIMARY KEY, setting_value TEXT NOT NULL, updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)").run();
+        await env.DB.prepare("INSERT INTO site_settings (setting_key, setting_value) VALUES ('appearance', ?) ON CONFLICT(setting_key) DO UPDATE SET setting_value=excluded.setting_value, updated_at=CURRENT_TIMESTAMP").bind(JSON.stringify(appearance)).run();
+        return json({ ok: true, appearance });
+      }
 
       if (url.pathname === "/api/admin/homepage/modules" && request.method === "GET") {
         const { results } = await env.DB.prepare("SELECT * FROM homepage_modules ORDER BY sort_order, id").all();
