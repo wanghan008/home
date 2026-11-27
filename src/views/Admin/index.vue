@@ -58,8 +58,7 @@
             <label>文章标题<input v-model="draft.title" maxlength="120" placeholder="给今天的心情起个标题" required/></label>
             <label>发布日期<input v-model="draft.mood_date" type="date" required/></label>
             <label>正文<textarea v-model="draft.content" maxlength="20000" rows="10" placeholder="写下今天的心情、想法或生活片段…" required/></label>
-            <label class="check"><input v-model="draft.published" type="checkbox"/> 发布到公开博客（不勾选则保存为草稿）</label>
-            <p class="save-hint">勾选发布选项，访客才能在博客页面看到文章。</p>
+            <p class="save-hint">文章保存后自动公开发布，访客可在博客页面查看。</p>
             <div class="actions"><button type="button" class="subtle" @click="reset">新建文章</button></div>
           </form>
           <h3 class="list-title">文章列表</h3>
@@ -75,7 +74,7 @@ import { ref, reactive, onMounted } from "vue";
 const authenticated=ref(false), password=ref(""), busy=ref(false), items=ref([]), modules=ref([]), links=ref([]), message=ref(""), activeTab=ref("modules"), imageError=ref(false);
 const tabs=[{id:"modules",label:"主页模块"},{id:"links",label:"网站链接"},{id:"moods",label:"心情文章"}];
 const localDate=()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-");};
-const blank=()=>({id:null,title:"",content:"",mood_date:localDate(),published:false});
+const blank=()=>({id:null,title:"",content:"",mood_date:localDate(),published:true});
 const blankModule=()=>({id:null,title:"",subtitle:"",description:"",image_url:"",link_url:"",icon:"",sort_order:modules.value.length+1,enabled:true});
 const blankLink=()=>({id:null,module_id:"",title:"",url:"",description:"",icon:"",sort_order:links.value.length+1,enabled:true});
 const draft=reactive(blank()), moduleDraft=reactive(blankModule()), linkDraft=reactive(blankLink());
@@ -85,7 +84,7 @@ async function login(){busy.value=true;message.value="";try{await api("/api/admi
 async function logout(){try{await api("/api/admin/logout",{method:"POST"});}finally{authenticated.value=false;items.value=[];modules.value=[];links.value=[];reset();resetModule();resetLink();}}
 function reset(){Object.assign(draft,blank());}
 function edit(item){Object.assign(draft,{...item,published:Boolean(item.published)});window.scrollTo({top:0,behavior:"smooth"});}
-async function save(){busy.value=true;message.value="正在保存文章…";try{const payload={title:draft.title,content:draft.content,mood_date:draft.mood_date,published:draft.published};await api(draft.id?"/api/admin/moods/"+draft.id:"/api/admin/moods",{method:draft.id?"PUT":"POST",body:JSON.stringify(payload)});message.value="✓ 文章保存成功";reset();try{await load();}catch(e){message.value="✓ 文章已保存，但列表刷新失败："+e.message;}}catch(e){message.value="✕ 保存失败："+e.message;}finally{busy.value=false;}}
+async function save(){busy.value=true;message.value="正在保存文章…";try{const payload={title:draft.title,content:draft.content,mood_date:draft.mood_date,published:true};await api(draft.id?"/api/admin/moods/"+draft.id:"/api/admin/moods",{method:draft.id?"PUT":"POST",body:JSON.stringify(payload)});message.value="✓ 文章保存成功";reset();try{await load();}catch(e){message.value="✓ 文章已保存，但列表刷新失败："+e.message;}}catch(e){message.value="✕ 保存失败："+e.message;}finally{busy.value=false;}}
 async function remove(item){if(!window.confirm("确定删除这篇文章吗？此操作不可恢复。"))return;try{await api("/api/admin/moods/"+item.id,{method:"DELETE"});if(draft.id===item.id)reset();await load();message.value="文章已删除";}catch(e){message.value=e.message;}}
 function resetModule(){Object.assign(moduleDraft,blankModule());imageError.value=false;}
 function editModule(item){Object.assign(moduleDraft,{...item,enabled:Boolean(item.enabled)});imageError.value=false;window.scrollTo({top:0,behavior:"smooth"});}
