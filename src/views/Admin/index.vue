@@ -119,7 +119,7 @@ const themes=[
   {id:"minimal",label:"简约清爽风",description:"明亮、干净、轻量"},
   {id:"glass",label:"深色玻璃风",description:"半透明玻璃质感"},
   {id:"nature",label:"自然舒适风",description:"绿色与大地色调"},
-  {id:"ocean",label:"深海 ocean 风",description:"海军蓝、青蓝与水下氛围"},
+  {id:"ocean",label:"深海蓝调风",description:"海军蓝、青蓝与水下氛围"},
   {id:"sunset",label:"落日暖橙风",description:"橘红、金色与黄昏渐变"},
   {id:"sakura",label:"樱花粉色风",description:"柔粉、奶白与温柔氛围"},
   {id:"cyberpunk",label:"赛博霓虹风",description:"黑紫底色与荧光粉青"},
@@ -223,7 +223,7 @@ a{color:#c4d4e8;text-decoration:none}
 .appearance-editor{display:flex;flex-direction:column;gap:16px}
 .appearance-editor h3{font-size:17px;font-weight:600;margin:8px 0 0}
 .field-hint{margin:-8px 0 4px;color:#9eafc2;font-size:13px;line-height:1.6}
-.theme-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.theme-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
 .theme-grid button{display:grid;grid-template-columns:24px 1fr;grid-template-rows:auto auto;align-items:center;text-align:left;gap:3px 9px;padding:13px;background:#ffffff0b;color:#e6edf5;border:1px solid #ffffff20}
 .theme-grid button.selected{border-color:#a9c9ee;background:#8baed32b;box-shadow:0 0 0 1px #a9c9ee55}
 .theme-grid button strong{font-size:14px}
@@ -261,7 +261,7 @@ a{color:#c4d4e8;text-decoration:none}
 .preview-minimal .preview-shade{background:rgba(255,255,255,.18)}
 .preview-tech .preview-content span{border-color:#75c8ff;background:#183f6a99}
 .preview-nature .preview-content span{background:#31563eaa}
-@media(max-width:560px){
+@media(max-width:900px){.theme-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}\n@media(max-width:560px){
 .admin-page{padding:18px 10px calc(38px + env(safe-area-inset-bottom))}
 header{margin-bottom:20px;padding:0 5px}
 .panel{padding:16px 12px;border-radius:14px}
