@@ -16,7 +16,7 @@
           <button v-if="activeTab==='modules'" class="save-button" type="button" @click="saveModule" :disabled="busy">{{ busy ? "正在保存…" : (moduleDraft.id ? "保存模块修改" : "保存主页模块") }}</button>
           <button v-else-if="activeTab==='links'" class="save-button" type="button" @click="saveLink" :disabled="busy">{{ busy ? "正在保存…" : (linkDraft.id ? "保存链接修改" : "保存网站链接") }}</button>
           <button v-else-if="activeTab==='appearance'" class="save-button" type="button" @click="saveAppearance" :disabled="busy">{{ busy ? "正在保存…" : "保存外观设置" }}</button>
-          <button v-else class="save-button" type="button" @click="save" :disabled="busy">{{ busy ? "正在保存…" : (draft.id ? "保存文章修改" : "保存文章") }}</button>
+          <button v-else-if="activeTab==='moods'" class="save-button" type="button" @click="save" :disabled="busy">{{ busy ? "正在保存…" : (draft.id ? "保存文章修改" : "保存文章") }}</button>
         </div>
 
         <section v-if="activeTab==='modules'" class="manager">
@@ -221,15 +221,16 @@ async function uploadImage(event){
     width=Math.max(1,Math.round(width*scale));height=Math.max(1,Math.round(height*scale));
     canvas.width=width;canvas.height=height;
     const context=canvas.getContext("2d");
-    context.drawImage(bitmap,0,0,width,height);bitmap.close?.();
+    context.drawImage(bitmap,0,0,width,height);
     let blob=await new Promise(resolve=>canvas.toBlob(resolve,"image/webp",0.82));
     if(!blob)throw new Error("浏览器无法压缩此图片格式。");
     for(let attempt=0;blob.size>200*1024&&attempt<8;attempt++){
-      width=Math.max(320,Math.round(width*0.85));height=Math.max(320,Math.round(height*0.85));
-      canvas.width=width;canvas.height=height;context.clearRect(0,0,width,height);context.drawImage(file,0,0,width,height);
+      width=Math.max(1,Math.round(width*0.85));height=Math.max(1,Math.round(height*0.85));
+      canvas.width=width;canvas.height=height;context.clearRect(0,0,width,height);context.drawImage(bitmap,0,0,width,height);
       blob=await new Promise(resolve=>canvas.toBlob(resolve,"image/webp",Math.max(0.5,0.78-attempt*0.04)));
       if(!blob)throw new Error("图片压缩失败。");
     }
+    bitmap.close?.();
     if(blob.size>200*1024)throw new Error("图片压缩后仍超过 200 KB，请换一张较小的图片。");
     const form=new FormData();form.append("image",new File([blob],"image-"+Date.now()+".webp",{type:"image/webp"}));
     const response=await fetch("/api/admin/images",{method:"POST",credentials:"same-origin",body:form});
@@ -326,6 +327,22 @@ a{color:#c4d4e8;text-decoration:none}
 .two-fields{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .image-preview{display:flex;align-items:center;gap:12px;color:#e3b9b9;font-size:13px;min-width:0;flex-wrap:wrap}
 .image-preview img{width:150px;max-width:100%;max-height:100px;object-fit:cover;border-radius:8px;border:1px solid #ffffff25}
+.hidden-file{display:none}
+.picker-trigger{align-self:flex-start}
+.empty-images{padding:28px 16px;border:1px dashed #ffffff35;border-radius:12px;color:#aab8c8;text-align:center}
+.uploaded-gallery{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:16px}
+.uploaded-image{display:flex;min-width:0;flex-direction:column;gap:7px;padding:9px;border:1px solid #ffffff20;border-radius:10px;background:#ffffff09;color:#e6edf5}
+.uploaded-image img{width:100%;height:130px;object-fit:cover;border-radius:7px;background:#101722}
+.uploaded-image strong,.uploaded-image small{overflow-wrap:anywhere}
+.uploaded-image strong{font-size:13px}
+.uploaded-image small{font-size:11px;color:#9eafc2}
+.uploaded-image button{margin-top:auto}
+.image-picker-backdrop{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:18px;background:#050a10c9;backdrop-filter:blur(8px)}
+.image-picker{width:min(760px,100%);max-height:min(82vh,760px);overflow:auto;padding:20px;border:1px solid #ffffff30;border-radius:16px;background:#172331;color:#eef2f7;box-shadow:0 20px 70px #0009}
+.picker-gallery{grid-template-columns:repeat(3,minmax(0,1fr))}
+.picker-image{width:100%;text-align:left;cursor:pointer}
+.picker-image span{font-size:12px;color:#b8d4f3}
+
 .appearance-editor{display:flex;flex-direction:column;gap:16px}
 .appearance-editor h3{font-size:17px;font-weight:600;margin:8px 0 0}
 .field-hint{margin:-8px 0 4px;color:#9eafc2;font-size:13px;line-height:1.6}
@@ -373,7 +390,7 @@ a{color:#c4d4e8;text-decoration:none}
 .preview-minimal .preview-shade{background:rgba(255,255,255,.18)}
 .preview-tech .preview-content span{border-color:#75c8ff;background:#183f6a99}
 .preview-nature .preview-content span{background:#31563eaa}
-@media(max-width:900px){.theme-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.background-gallery{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:900px){.theme-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.background-gallery{grid-template-columns:repeat(2,minmax(0,1fr))}.uploaded-gallery,.picker-gallery{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:560px){
 .admin-page{padding:18px 10px calc(38px + env(safe-area-inset-bottom))}
 header{margin-bottom:20px;padding:0 5px}
@@ -387,7 +404,7 @@ header{margin-bottom:20px;padding:0 5px}
 .top-actions .save-button{width:100%;min-height:48px}
 .actions{align-items:stretch;flex-direction:column}
 .actions button{width:100%;min-height:44px}
-.two-fields{grid-template-columns:1fr}.theme-grid{grid-template-columns:1fr 1fr}.background-gallery{grid-template-columns:repeat(2,minmax(0,1fr))}.background-gallery img{height:90px}
+.two-fields{grid-template-columns:1fr}.theme-grid{grid-template-columns:1fr 1fr}.background-gallery{grid-template-columns:repeat(2,minmax(0,1fr))}.background-gallery img{height:90px}.uploaded-gallery,.picker-gallery{grid-template-columns:repeat(2,minmax(0,1fr))}.image-picker{padding:14px;max-height:86vh}
 .section-heading{align-items:flex-start;flex-direction:column}
 .tabs{margin-top:16px;gap:6px}
 .tabs button{padding:10px 13px}
