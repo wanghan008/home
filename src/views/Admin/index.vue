@@ -11,10 +11,15 @@
         <nav class="tabs">
           <button v-for="tab in tabs" :key="tab.id" :class="{active:activeTab===tab.id}" @click="activeTab=tab.id">{{ tab.label }}</button>
         </nav>
+        <div class="top-actions">
+          <button v-if="activeTab==='modules'" class="save-button" type="submit" form="module-form" :disabled="busy">{{ busy ? "正在保存…" : (moduleDraft.id ? "保存模块修改" : "保存主页模块") }}</button>
+          <button v-else-if="activeTab==='links'" class="save-button" type="submit" form="link-form" :disabled="busy">{{ busy ? "正在保存…" : (linkDraft.id ? "保存链接修改" : "保存网站链接") }}</button>
+          <button v-else class="save-button" type="submit" form="mood-form" :disabled="busy">{{ busy ? "正在保存…" : (draft.id ? "保存文章修改" : "保存文章") }}</button>
+        </div>
 
         <section v-if="activeTab==='modules'" class="manager">
           <div class="section-heading"><div><h2>主页模块</h2><p class="hint">添加文字介绍、图片和可选跳转链接。</p></div><button @click="resetModule">＋ 添加模块</button></div>
-          <form class="editor" @submit.prevent="saveModule">
+          <form id="module-form" class="editor" @submit.prevent="saveModule">
             <label>模块标题<input v-model="moduleDraft.title" maxlength="100" placeholder="例如：我的开发项目" required/></label>
             <label>副标题<input v-model="moduleDraft.subtitle" maxlength="160" placeholder="可选，例如：PROJECTS & IDEAS"/></label>
             <label>文字介绍<textarea v-model="moduleDraft.description" maxlength="5000" rows="5" placeholder="介绍这个模块的内容，可以换行。"/></label>
@@ -23,7 +28,7 @@
             <label>模块点击跳转网址<input v-model="moduleDraft.link_url" maxlength="1000" placeholder="可留空，也可填写 https://..."/></label>
             <div class="two-fields"><label>图标/表情<input v-model="moduleDraft.icon" maxlength="40" placeholder="例如：✦ 或 Blog"/></label><label>显示顺序<input v-model.number="moduleDraft.sort_order" type="number"/></label></div>
             <label class="check"><input v-model="moduleDraft.enabled" type="checkbox"/> 在主页显示</label>
-            <div class="actions"><button class="save-button" type="submit" :disabled="busy">{{ busy ? "正在保存…" : (moduleDraft.id ? "保存模块修改" : "添加主页模块") }}</button><button type="button" class="subtle" @click="resetModule">清空</button></div>
+            <div class="actions"><button type="button" class="subtle" @click="resetModule">清空表单</button></div>
           </form>
           <h3 class="list-title">已有模块</h3>
           <p v-if="!modules.length" class="hint">还没有模块，使用上方表单添加。</p>
@@ -32,14 +37,14 @@
 
         <section v-else-if="activeTab==='links'" class="manager">
           <div class="section-heading"><div><h2>网站链接</h2><p class="hint">管理主页上的游戏、博客和其他网站入口。</p></div><button @click="resetLink">＋ 添加链接</button></div>
-          <form class="editor" @submit.prevent="saveLink">
+          <form id="link-form" class="editor" @submit.prevent="saveLink">
             <label>链接名称<input v-model="linkDraft.title" maxlength="100" placeholder="例如：我的新项目" required/></label>
             <label>网址<input v-model="linkDraft.url" maxlength="1000" placeholder="https://example.com" required/></label>
             <label>简短说明<input v-model="linkDraft.description" maxlength="300" placeholder="可选"/></label>
             <label>所属模块<select v-model="linkDraft.module_id"><option value="">不归属模块</option><option v-for="m in modules" :key="m.id" :value="String(m.id)">{{ m.title }}</option></select></label>
             <div class="two-fields"><label>图标/表情<input v-model="linkDraft.icon" maxlength="40" placeholder="例如：🎮 或 Fire"/></label><label>显示顺序<input v-model.number="linkDraft.sort_order" type="number"/></label></div>
             <label class="check"><input v-model="linkDraft.enabled" type="checkbox"/> 在主页显示</label>
-            <div class="actions"><button class="save-button" type="submit" :disabled="busy">{{ busy ? "正在保存…" : (linkDraft.id ? "保存链接修改" : "添加网站链接") }}</button><button type="button" class="subtle" @click="resetLink">清空</button></div>
+            <div class="actions"><button type="button" class="subtle" @click="resetLink">清空表单</button></div>
           </form>
           <h3 class="list-title">已有链接</h3>
           <p v-if="!links.length" class="hint">还没有链接。</p>
@@ -48,13 +53,13 @@
 
         <section v-else class="manager">
           <h2>心情文章</h2><p class="hint">管理公开博客文章与草稿。</p>
-          <form class="editor" @submit.prevent="save">
+          <form id="mood-form" class="editor" @submit.prevent="save">
             <label>文章标题<input v-model="draft.title" maxlength="120" placeholder="给今天的心情起个标题" required/></label>
             <label>发布日期<input v-model="draft.mood_date" type="date" required/></label>
             <label>正文<textarea v-model="draft.content" maxlength="20000" rows="10" placeholder="写下今天的心情、想法或生活片段…" required/></label>
             <label class="check"><input v-model="draft.published" type="checkbox"/> 发布到公开博客（不勾选则保存为草稿）</label>
             <p class="save-hint">勾选发布选项，访客才能在博客页面看到文章。</p>
-            <div class="actions"><button class="save-button" type="submit" :disabled="busy">{{ busy ? "正在保存…" : (draft.id ? "保存修改" : "保存文章") }}</button><button type="button" class="subtle" @click="reset">新建文章</button></div>
+            <div class="actions"><button type="button" class="subtle" @click="reset">新建文章</button></div>
           </form>
           <h3 class="list-title">文章列表</h3>
           <div v-if="!items.length" class="hint">还没有文章，写下第一篇吧。</div>
@@ -113,14 +118,16 @@ a{color:#c4d4e8;text-decoration:none}
 .tabs{position:sticky;top:0;z-index:20;display:flex;gap:8px;flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;margin:22px 0 26px;padding:12px 0 14px;border-bottom:1px solid #ffffff20;background:#172331f2;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);scrollbar-width:thin}
 .tabs button{flex:0 0 auto;white-space:nowrap;background:#ffffff12;color:#cbd5e1}
 .tabs button.active{background:#dce8f5;color:#172536;font-weight:700}
-.manager{min-width:0;scroll-margin-top:72px}
+.top-actions{position:sticky;top:58px;z-index:19;display:flex;justify-content:flex-end;padding:10px 0 14px;background:#172331f2;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid #ffffff20}
+.top-actions .save-button{min-width:190px;padding:13px 22px;background:#e3edf8;color:#142233;font-weight:700;font-size:16px;box-shadow:0 4px 16px #0003}
+.manager{min-width:0;scroll-margin-top:125px}
 .section-heading{margin-bottom:20px}
 .section-heading .hint{margin:6px 0 0}
 .editor{padding:20px;border:1px solid #ffffff18;border-radius:12px;background:#ffffff08;min-width:0;overflow:visible}
 .check{display:flex;align-items:center;gap:9px}
 .save-hint{margin:0;color:#b8c8d9;font-size:14px;line-height:1.6}
 .actions,.entry-actions{display:flex;gap:10px;align-items:center}
-.actions{position:sticky;bottom:0;z-index:15;margin:0 -8px -8px;padding:14px 8px calc(14px + env(safe-area-inset-bottom));background:#172331f2;border-top:1px solid #ffffff20;border-radius:10px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.actions{display:flex;justify-content:flex-end;margin:0 -8px -8px;padding:14px 8px;border-top:1px solid #ffffff20;border-radius:10px}
 .panel .save-button{min-width:150px;padding:14px 24px;background:#e3edf8;color:#142233;font-weight:700;font-size:16px;box-shadow:0 4px 16px #0003}
 .list-title{font-size:19px;font-weight:500;margin:30px 0 12px}
 .entry{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:16px 0;border-top:1px solid #ffffff18}
@@ -139,9 +146,10 @@ header{margin-bottom:20px;padding:0 5px}
 .entry{align-items:flex-start;flex-direction:column}
 .entry-actions{width:100%}
 .entry-actions button{flex:1}
-.actions{align-items:stretch;flex-direction:column;bottom:0}
-.actions button{width:100%;min-height:46px}
-.panel .save-button{padding:15px}
+.top-actions{top:54px;padding:9px 0 12px}
+.top-actions .save-button{width:100%;min-height:48px}
+.actions{align-items:stretch;flex-direction:column}
+.actions button{width:100%;min-height:44px}
 .two-fields{grid-template-columns:1fr}
 .section-heading{align-items:flex-start;flex-direction:column}
 .tabs{margin-top:16px;gap:6px}
