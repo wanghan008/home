@@ -15,7 +15,8 @@
         <el-row class="link-all" :gutter="20">
           <el-col v-for="(item, index) in site" :span="8" :key="item.id || item.url || item.link || item.title">
             <div class="item cards" :style="index < 3 ? 'margin-bottom: 20px' : null" @click="jumpLink(item)">
-              <Icon v-if="item.icon && siteIcon[item.icon]" size="26"><component :is="siteIcon[item.icon]" /></Icon>
+              <img v-if="isUploadedIcon(item.icon)" class="favicon custom-uploaded-icon" :src="item.icon" :alt="(item.name || item.title) + ' 自定义图标'" loading="lazy"/>
+              <Icon v-else-if="item.icon && siteIcon[item.icon]" size="26"><component :is="siteIcon[item.icon]" /></Icon>
               <span v-else-if="item.icon" class="custom-icon">{{ item.icon }}</span>
               <template v-else>
                 <img v-if="!failedFavicons.has(String(item.id || item.url || item.title))" class="favicon" :src="getFaviconUrl(item.url || item.link)" :alt="(item.name || item.title) + ' 网站图标'" loading="lazy" @error="handleFaviconError($event, item)"/>
@@ -48,6 +49,9 @@ const siteLinksList = computed(() => {
   return result;
 });
 const siteIcon = { Blog, Cloud, CompactDisc, Compass, Book, Fire, LaptopCode, Link };
+function isUploadedIcon(value) {
+  return typeof value === "string" && /^\/api\/images\/[A-Za-z0-9_-]+$/.test(value);
+}
 const failedFavicons = ref(new Set());
 const faviconFallbackUsed = new WeakSet();
 function getFaviconUrl(value) {
