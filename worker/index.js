@@ -82,7 +82,7 @@ export default {
     if (!env.DB) return json({ error: "D1 数据库尚未绑定。" }, 503);
 
 
-    const publicImageMatch = url.pathname.match(/^\\/api\\/images\\/(\\d+)$/);
+    const publicImageMatch = url.pathname.match(/^\/api\/images\/(\d+)$/);
     if (publicImageMatch && request.method === "GET") {
       await ensureImagesTable(env.DB);
       const row = await env.DB.prepare("SELECT mime_type, size_bytes, image_data FROM uploaded_images WHERE id = ?").bind(Number(publicImageMatch[1])).first();
@@ -161,7 +161,7 @@ export default {
         const result = await env.DB.prepare("INSERT INTO uploaded_images (name, mime_type, size_bytes, image_data) VALUES (?, ?, ?, ?)").bind(name, file.type, bytes.byteLength, bytes).run();
         return json({ ok: true, id: result.meta.last_row_id, name, mime_type: file.type, size_bytes: bytes.byteLength, url: "/api/images/" + result.meta.last_row_id }, 201);
       }
-      const imageMatch = url.pathname.match(/^\\/api\\/admin\\/images\\/(\\d+)$/);
+      const imageMatch = url.pathname.match(/^\/api\/admin\/images\/(\d+)$/);
       if (imageMatch && request.method === "DELETE") {
         await ensureImagesTable(env.DB);
         await env.DB.prepare("DELETE FROM uploaded_images WHERE id = ?").bind(Number(imageMatch[1])).run();
