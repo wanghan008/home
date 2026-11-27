@@ -97,7 +97,7 @@ async function removeLink(item){if(!window.confirm("确定删除这个网站链�
 onMounted(async()=>{try{await api("/api/admin/me");authenticated.value=true;await load();}catch(e){authenticated.value=false;}});
 </script>
 <style scoped>
-.admin-page{position:fixed;inset:0;width:100%;height:100vh;height:100dvh;min-height:0;box-sizing:border-box;overflow-y:scroll;overflow-x:hidden;overscroll-behavior-y:contain;touch-action:pan-y; -webkit-overflow-scrolling:touch;padding:30px 18px calc(60px + env(safe-area-inset-bottom));background:linear-gradient(145deg,#101722,#202b38);color:#eef2f7;font-family:inherit}
+.admin-page{position:fixed;inset:0;width:100%;height:100vh;height:100dvh;min-height:0;box-sizing:border-box;overflow-y:scroll;overflow-x:hidden;overscroll-behavior-y:contain;touch-action:pan-y pinch-zoom; -webkit-overflow-scrolling:touch;padding:30px 18px calc(60px + env(safe-area-inset-bottom));background:linear-gradient(145deg,#101722,#202b38);color:#eef2f7;font-family:inherit}
 header{max-width:900px;margin:0 auto 35px;display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
 a{color:#c4d4e8;text-decoration:none}
 .panel{max-width:900px;margin:auto;padding:clamp(18px,4vw,42px);border:1px solid #ffffff1c;border-radius:18px;background:#ffffff0b;min-width:0;box-sizing:border-box}
