@@ -57,6 +57,23 @@ function cleanEnabled(value) { return value === false || value === 0 ? 0 : 1; }
 async function readBody(request) {
   try { return await request.json(); } catch { return null; }
 }
+
+async function ensureImagesTable(db) {
+  await db.prepare(`CREATE TABLE IF NOT EXISTS uploaded_images (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL DEFAULT '',
+    mime_type TEXT NOT NULL,
+    size_bytes INTEGER NOT NULL,
+    image_data BLOB NOT NULL,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )`).run();
+}
+function validImageBytes(bytes, type) {
+  if (type === "image/jpeg") return bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+  if (type === "image/png") return bytes.length >= 8 && bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47 && bytes[4] === 0x0d && bytes[5] === 0x0a && bytes[6] === 0x1a && bytes[7] === 0x0a;
+  if (type === "image/webp") return bytes.length >= 12 && String.fromCharCode(...bytes.slice(0, 4)) === "RIFF" && String.fromCharCode(...bytes.slice(8, 12)) === "WEBP";
+  return false;
+}
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -64,6 +81,20 @@ export default {
     if (request.method === "OPTIONS") return new Response(null, { status: 204 });
     if (!env.DB) return json({ error: "D1 数据库尚未绑定。" }, 503);
 
+
+    const publicImageMatch = url.pathname.match(/^\\/api\\/images\\/(\\d+)$/);
+    if (publicImageMatch && request.method === "GET") {
+      await ensureImagesTable(env.DB);
+      const row = await env.DB.prepare("SELECT mime_type, size_bytes, image_data FROM uploaded_images WHERE id = ?").bind(Number(publicImageMatch[1])).first();
+      if (!row) return json({ error: "图片不存在。" }, 404);
+      const bytes = row.image_data instanceof Uint8Array ? row.image_data : new Uint8Array(row.image_data);
+      return new Response(bytes, { headers: {
+        "content-type": row.mime_type,
+        "content-length": String(row.size_bytes),
+        "cache-control": "public, max-age=86400",
+        "x-content-type-options": "nosniff"
+      }});
+    }
 
     if (url.pathname === "/api/appearance" && request.method === "GET") {
       await env.DB.prepare("CREATE TABLE IF NOT EXISTS site_settings (setting_key TEXT PRIMARY KEY, setting_value TEXT NOT NULL, updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)").run();
@@ -106,6 +137,37 @@ export default {
     if (url.pathname.startsWith("/api/admin/")) {
       if (!env.SESSION_SECRET || !(await validSession(request, env.SESSION_SECRET))) return json({ error: "登录已失效，请重新登录。" }, 401);
       if (url.pathname === "/api/admin/me" && request.method === "GET") return json({ ok: true });
+
+      if (url.pathname === "/api/admin/images" && request.method === "GET") {
+        await ensureImagesTable(env.DB);
+        const { results } = await env.DB.prepare("SELECT id, name, mime_type, size_bytes, created_at FROM uploaded_images ORDER BY id DESC").all();
+        const total = (results || []).reduce((sum, item) => sum + Number(item.size_bytes || 0), 0);
+        return json({ items: results || [], count: (results || []).length, totalBytes: total, maxCount: 20, maxTotalBytes: 4 * 1024 * 1024, maxImageBytes: 200 * 1024 });
+      }
+      if (url.pathname === "/api/admin/images" && request.method === "POST") {
+        await ensureImagesTable(env.DB);
+        let form;
+        try { form = await request.formData(); } catch { return json({ error: "无法读取上传文件。" }, 400); }
+        const file = form.get("image");
+        if (!file || typeof file.arrayBuffer !== "function") return json({ error: "请选择一张图片。" }, 400);
+        if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) return json({ error: "仅支持 JPG、PNG 或 WebP 图片。" }, 400);
+        if (file.size <= 0 || file.size > 200 * 1024) return json({ error: "压缩后的图片必须在 200 KB 以内。" }, 413);
+        const bytes = new Uint8Array(await file.arrayBuffer());
+        if (!validImageBytes(bytes, file.type)) return json({ error: "图片格式校验失败，请重新选择图片。" }, 400);
+        const stats = await env.DB.prepare("SELECT COUNT(*) AS count, COALESCE(SUM(size_bytes), 0) AS total FROM uploaded_images").first();
+        if (Number(stats?.count || 0) >= 20) return json({ error: "图片库最多保存 20 张，请先删除不需要的图片。" }, 409);
+        if (Number(stats?.total || 0) + bytes.byteLength > 4 * 1024 * 1024) return json({ error: "图片库总容量不能超过 4 MB，请先删除部分图片。" }, 409);
+        const name = cleanText(file.name || "image", 120) || "image";
+        const result = await env.DB.prepare("INSERT INTO uploaded_images (name, mime_type, size_bytes, image_data) VALUES (?, ?, ?, ?)").bind(name, file.type, bytes.byteLength, bytes).run();
+        return json({ ok: true, id: result.meta.last_row_id, name, mime_type: file.type, size_bytes: bytes.byteLength, url: "/api/images/" + result.meta.last_row_id }, 201);
+      }
+      const imageMatch = url.pathname.match(/^\\/api\\/admin\\/images\\/(\\d+)$/);
+      if (imageMatch && request.method === "DELETE") {
+        await ensureImagesTable(env.DB);
+        await env.DB.prepare("DELETE FROM uploaded_images WHERE id = ?").bind(Number(imageMatch[1])).run();
+        return json({ ok: true });
+      }
+
 
       if (url.pathname === "/api/admin/appearance" && request.method === "GET") {
         await env.DB.prepare("CREATE TABLE IF NOT EXISTS site_settings (setting_key TEXT PRIMARY KEY, setting_value TEXT NOT NULL, updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)").run();
