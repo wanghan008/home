@@ -261,7 +261,8 @@ a{color:#c4d4e8;text-decoration:none}
 .preview-minimal .preview-shade{background:rgba(255,255,255,.18)}
 .preview-tech .preview-content span{border-color:#75c8ff;background:#183f6a99}
 .preview-nature .preview-content span{background:#31563eaa}
-@media(max-width:900px){.theme-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}\n@media(max-width:560px){
+@media(max-width:900px){.theme-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:560px){
 .admin-page{padding:18px 10px calc(38px + env(safe-area-inset-bottom))}
 header{margin-bottom:20px;padding:0 5px}
 .panel{padding:16px 12px;border-radius:14px}
