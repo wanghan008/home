@@ -16,7 +16,7 @@ import { ref, onMounted } from "vue";
 const items = ref([]), loading = ref(true), error = ref("");
 function renderContent(value){
   const escaped=String(value||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;");
-  return escaped.replace(/!\\[([^\\]]*)\\]\\(\\/api\\/images\\/(\\d+)\\)/g,'<img src="/api/images/$2" alt="$1" loading="lazy">').replace(/\\r?\\n/g,"<br>");
+  return escaped.replace(/!\[([^\]]*)\]\(\/api\/images\/(\d+)\)/g,'<img src="/api/images/$2" alt="$1" loading="lazy">').replace(/\\r?\\n/g,"<br>");
 }
 
 onMounted(async () => {
