@@ -83,7 +83,8 @@
               <input v-model.number="appearanceDraft.backgroundDim" type="range" min="0" max="90" step="1"/>
             </label>
             <h3>效果预览</h3>
-            <div class="appearance-preview" :class="'preview-'+appearanceDraft.theme" :style="appearancePreviewStyle">
+            <div class="appearance-preview" :class="'preview-'+appearanceDraft.theme">
+              <div class="preview-image" :style="appearancePreviewStyle"></div>
               <div class="preview-shade"></div>
               <div class="preview-content"><strong>个人主页</strong><span>主页内容 · 网站链接</span><small>这是当前外观的预览效果</small></div>
             </div>
@@ -126,6 +127,7 @@ const appearancePreviewStyle=computed(()=>({
   backgroundSize: appearanceDraft.backgroundFit==="contain" ? "contain" : appearanceDraft.backgroundFit==="center" ? "auto" : "cover",
   backgroundPosition:"center",
   backgroundRepeat:"no-repeat",
+  filter:`blur(${Number(appearanceDraft.backgroundBlur)||0}px) brightness(${1-(Number(appearanceDraft.backgroundDim)||0)/100})`,
 }));
 const localDate=()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-");};
 const blank=()=>({id:null,title:"",content:"",mood_date:localDate(),published:true});
@@ -218,8 +220,9 @@ a{color:#c4d4e8;text-decoration:none}
 .theme-nature{background:linear-gradient(135deg,#456b45,#c0a56a)}
 .theme-classic{background:linear-gradient(135deg,#25384e,#66778a)}
 .appearance-editor input[type=range]{width:100%;margin:12px 0 0;accent-color:#a9c9ee}
-.appearance-preview{position:relative;min-height:170px;border-radius:13px;overflow:hidden;background-color:#172536;border:1px solid #ffffff35;background-size:cover}
-.preview-shade{position:absolute;inset:0;background:rgba(0,0,0,.35)}
+.appearance-preview{position:relative;min-height:170px;border-radius:13px;overflow:hidden;background-color:#172536;border:1px solid #ffffff35}
+.preview-image{position:absolute;inset:-22px;background-color:#172536}
+.preview-shade{position:absolute;inset:0;background:rgba(0,0,0,.18)}
 .preview-content{position:relative;z-index:1;display:flex;flex-direction:column;gap:9px;align-items:flex-start;padding:28px;color:#fff}
 .preview-content strong{font-size:22px}
 .preview-content span{padding:10px 14px;border:1px solid #ffffff45;border-radius:9px;background:#ffffff20;backdrop-filter:blur(10px)}
