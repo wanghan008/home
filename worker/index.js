@@ -226,7 +226,7 @@ export default {
         const data = await readBody(request);
         const title = cleanText(data?.title, 100, true);
         const target = cleanText(data?.url, 1000);
-        const imageOnly = /^\\/api\\/images\\/[A-Za-z0-9_-]+$/.test(cleanText(data?.icon, 40));
+        const imageOnly = /^\/api\/images\/[A-Za-z0-9_-]+$/.test(cleanText(data?.icon, 40));
         if (!title || (!target && !imageOnly) || (target && !safeUrl(target, false))) return json({ error: "请填写有效的网址；如果不填写网址，必须选择一张图片作为展示内容。" }, 400);
         const moduleId = data.module_id == null || data.module_id === "" ? null : Number(data.module_id);
         if (moduleId !== null && (!Number.isSafeInteger(moduleId) || moduleId <= 0)) return json({ error: "所属模块无效。" }, 400);
@@ -259,7 +259,7 @@ export default {
           const data = await readBody(request);
           const title = cleanText(data?.title, 100, true);
           const target = cleanText(data?.url, 1000);
-          const imageOnly = /^\\/api\\/images\\/[A-Za-z0-9_-]+$/.test(cleanText(data?.icon, 40));
+          const imageOnly = /^\/api\/images\/[A-Za-z0-9_-]+$/.test(cleanText(data?.icon, 40));
           const moduleId = data.module_id == null || data.module_id === "" ? null : Number(data.module_id);
           if (!title || (!target && !imageOnly) || (target && !safeUrl(target, false)) || (moduleId !== null && (!Number.isSafeInteger(moduleId) || moduleId <= 0))) return json({ error: "请填写有效的网址；如果不填写网址，必须选择一张图片作为展示内容。" }, 400);
           await env.DB.prepare("UPDATE homepage_links SET module_id=?, title=?, url=?, description=?, icon=?, sort_order=?, enabled=?, updated_at=CURRENT_TIMESTAMP WHERE id=?").bind(moduleId, title, target, cleanText(data.description, 300), cleanText(data.icon, 40), cleanOrder(data.sort_order), cleanEnabled(data.enabled), id).run();
