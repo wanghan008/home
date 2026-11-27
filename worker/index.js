@@ -225,8 +225,9 @@ export default {
       if (url.pathname === "/api/admin/homepage/links" && request.method === "POST") {
         const data = await readBody(request);
         const title = cleanText(data?.title, 100, true);
-        const target = cleanText(data?.url, 1000, true);
-        if (!title || !target || !safeUrl(target, false)) return json({ error: "请填写有效的链接名称和 http/https 网址或站内路径。" }, 400);
+        const target = cleanText(data?.url, 1000);
+        const imageOnly = /^\\/api\\/images\\/[A-Za-z0-9_-]+$/.test(cleanText(data?.icon, 40));
+        if (!title || (!target && !imageOnly) || (target && !safeUrl(target, false))) return json({ error: "请填写有效的网址；如果不填写网址，必须选择一张图片作为展示内容。" }, 400);
         const moduleId = data.module_id == null || data.module_id === "" ? null : Number(data.module_id);
         if (moduleId !== null && (!Number.isSafeInteger(moduleId) || moduleId <= 0)) return json({ error: "所属模块无效。" }, 400);
         const result = await env.DB.prepare("INSERT INTO homepage_links (module_id, title, url, description, icon, sort_order, enabled) VALUES (?, ?, ?, ?, ?, ?, ?)").bind(moduleId, title, target, cleanText(data.description, 300), cleanText(data.icon, 40), cleanOrder(data.sort_order), cleanEnabled(data.enabled)).run();
@@ -257,9 +258,10 @@ export default {
         if (request.method === "PUT") {
           const data = await readBody(request);
           const title = cleanText(data?.title, 100, true);
-          const target = cleanText(data?.url, 1000, true);
+          const target = cleanText(data?.url, 1000);
+          const imageOnly = /^\\/api\\/images\\/[A-Za-z0-9_-]+$/.test(cleanText(data?.icon, 40));
           const moduleId = data.module_id == null || data.module_id === "" ? null : Number(data.module_id);
-          if (!title || !target || !safeUrl(target, false) || (moduleId !== null && (!Number.isSafeInteger(moduleId) || moduleId <= 0))) return json({ error: "请检查链接名称、网址和所属模块。" }, 400);
+          if (!title || (!target && !imageOnly) || (target && !safeUrl(target, false)) || (moduleId !== null && (!Number.isSafeInteger(moduleId) || moduleId <= 0))) return json({ error: "请填写有效的网址；如果不填写网址，必须选择一张图片作为展示内容。" }, 400);
           await env.DB.prepare("UPDATE homepage_links SET module_id=?, title=?, url=?, description=?, icon=?, sort_order=?, enabled=?, updated_at=CURRENT_TIMESTAMP WHERE id=?").bind(moduleId, title, target, cleanText(data.description, 300), cleanText(data.icon, 40), cleanOrder(data.sort_order), cleanEnabled(data.enabled), id).run();
           return json({ ok: true });
         }
