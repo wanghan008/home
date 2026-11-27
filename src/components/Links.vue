@@ -15,8 +15,12 @@
         <el-row class="link-all" :gutter="20">
           <el-col v-for="(item, index) in site" :span="8" :key="item.id || item.url || item.link || item.title">
             <div class="item cards" :style="index < 3 ? 'margin-bottom: 20px' : null" @click="jumpLink(item)">
-              <Icon v-if="siteIcon[item.icon]" size="26"><component :is="siteIcon[item.icon]" /></Icon>
-              <span v-else class="custom-icon">{{ item.icon || "↗" }}</span>
+              <Icon v-if="item.icon && siteIcon[item.icon]" size="26"><component :is="siteIcon[item.icon]" /></Icon>
+              <span v-else-if="item.icon" class="custom-icon">{{ item.icon }}</span>
+              <template v-else>
+                <img v-if="!failedFavicons.has(String(item.id || item.url || item.title))" class="favicon" :src="getFaviconUrl(item.url || item.link)" :alt="(item.name || item.title) + ' 网站图标'" loading="lazy" @error="handleFaviconError($event, item)"/>
+                <span v-else class="custom-icon">↗</span>
+              </template>
               <span class="name text-hidden">{{ item.name || item.title }}</span>
             </div>
           </el-col>
@@ -44,6 +48,30 @@ const siteLinksList = computed(() => {
   return result;
 });
 const siteIcon = { Blog, Cloud, CompactDisc, Compass, Book, Fire, LaptopCode, Link };
+const failedFavicons = ref(new Set());
+const faviconFallbackUsed = new WeakSet();
+function getFaviconUrl(value) {
+  try {
+    const target = new URL(value, window.location.origin);
+    if (!["http:", "https:"].includes(target.protocol)) return "";
+    return "https://www.google.com/s2/favicons?domain_url=" + encodeURIComponent(target.origin) + "&sz=64";
+  } catch {
+    return "";
+  }
+}
+function handleFaviconError(event, item) {
+  const img = event.currentTarget;
+  const key = String(item.id || item.url || item.title);
+  if (!faviconFallbackUsed.has(img)) {
+    faviconFallbackUsed.add(img);
+    try {
+      const target = new URL(item.url || item.link, window.location.origin);
+      img.src = "https://icons.duckduckgo.com/ip3/" + target.hostname + ".ico";
+      return;
+    } catch {}
+  }
+  failedFavicons.value = new Set([...failedFavicons.value, key]);
+}
 const jumpLink = (data) => {
   const target = data.url || data.link;
   if (!target) return;
@@ -86,6 +114,7 @@ onMounted(async () => {
       &:active { transform: scale(1); }
       .name { font-size: 1.1rem; margin-left: 8px; }
       .custom-icon { font-size: 24px; line-height: 1; }
+      .favicon { width: 28px; height: 28px; flex: 0 0 28px; object-fit: contain; border-radius: 5px; }
       @media (min-width: 720px) and (max-width: 820px) { .name { display: none; } }
       @media (max-width: 720px) { height: 80px; }
       @media (max-width: 460px) { flex-direction: column; .name { font-size: 1rem; margin-left: 0; margin-top: 8px; } }
