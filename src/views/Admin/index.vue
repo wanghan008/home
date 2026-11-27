@@ -249,7 +249,7 @@ async function uploadImage(event){
     }
     bitmap.close?.();
     if(blob.size>200*1024)throw new Error("图片压缩后仍超过 200 KB，请换一张较小的图片。");
-    const form=new FormData();const imageName=(file.name||"image").replace(/\\.[^.]+$/,"").slice(0,80)+".webp";form.append("image",new File([blob],imageName,{type:"image/webp"}));
+    const form=new FormData();const imageName=(file.name||"image").replace(/\.[^.]+$/,"").slice(0,80)+".webp";form.append("image",new File([blob],imageName,{type:"image/webp"}));
     const response=await fetch("/api/admin/images",{method:"POST",credentials:"same-origin",body:form});
     const result=await response.json().catch(()=>({}));
     if(!response.ok)throw new Error(result.error||"图片上传失败");
