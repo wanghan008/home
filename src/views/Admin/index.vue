@@ -67,6 +67,17 @@
                 <small>{{ theme.description }}</small>
               </button>
             </div>
+            <h3>默认背景图片</h3>
+            <p class="field-hint">点击缩略图即可选用。图片来自 Unsplash，选择后也可以继续调整模糊度和暗度。</p>
+            <div class="background-gallery">
+              <button v-for="background in defaultBackgrounds" :key="background.id" type="button"
+                :class="{selected:appearanceDraft.backgroundUrl===background.url}"
+                @click="selectBackground(background)">
+                <img :src="background.url" :alt="background.label" loading="lazy"/>
+                <span>{{ background.label }}</span>
+                <small v-if="appearanceDraft.backgroundUrl===background.url">✓ 当前选择</small>
+              </button>
+            </div>
             <label>背景图片网址<input v-model.trim="appearanceDraft.backgroundUrl" type="url" maxlength="1000" placeholder="https://example.com/background.jpg"/></label>
             <p class="field-hint">留空则使用原主页的壁纸轮换。请填写可以直接打开图片的 http/https 图片地址。</p>
             <label>背景显示方式
@@ -135,6 +146,23 @@ const themes=[
   {id:"rose",label:"玫瑰酒红风",description:"酒红、玫瑰与优雅质感"},
   {id:"emerald",label:"翡翠绿风",description:"深翡翠与清透金属感"},
 ];
+const defaultBackgrounds=[
+  {id:"mountain",label:"雪山晨光",url:"https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1800&q=85"},
+  {id:"lake",label:"湖畔群山",url:"https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=1800&q=85"},
+  {id:"ocean",label:"蔚蓝海岸",url:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1800&q=85"},
+  {id:"waves",label:"海浪与海面",url:"https://images.unsplash.com/photo-1518837695005-2083093ee35b?auto=format&fit=crop&w=1800&q=85"},
+  {id:"sunrise",label:"日出云海",url:"https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?auto=format&fit=crop&w=1800&q=85"},
+  {id:"forest",label:"森林秘境",url:"https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1800&q=85"},
+  {id:"night-sky",label:"星空雪山",url:"https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1800&q=85"},
+  {id:"galaxy",label:"梦幻星空",url:"https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=1800&q=85"},
+  {id:"flowers",label:"春日花园",url:"https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=1800&q=85"},
+  {id:"green-hills",label:"绿色山谷",url:"https://images.unsplash.com/photo-1472214103451-9374bd1c798e?auto=format&fit=crop&w=1800&q=85"},
+  {id:"desert",label:"金色沙漠",url:"https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=1800&q=85"},
+  {id:"night",label:"蓝调夜色",url:"https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=1800&q=85"},
+  {id:"alpine",label:"高山湖泊",url:"https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1800&q=85"},
+  {id:"plant",label:"清新绿植",url:"https://images.unsplash.com/photo-1497250681960-ef046c08a56e?auto=format&fit=crop&w=1800&q=85"},
+];
+function selectBackground(background){appearanceDraft.backgroundUrl=background.url;}
 const defaultAppearance=()=>({theme:"classic",backgroundUrl:"",backgroundFit:"cover",backgroundBlur:20,backgroundDim:70});
 const appearanceDraft=reactive(defaultAppearance());
 const appearancePreviewStyle=computed(()=>({
@@ -250,6 +278,12 @@ a{color:#c4d4e8;text-decoration:none}
 .theme-rose{background:linear-gradient(135deg,#572235,#c77a8b)}
 .theme-emerald{background:linear-gradient(135deg,#075e50,#9bc8a8)}
 .appearance-editor input[type=range]{width:100%;margin:12px 0 0;accent-color:#a9c9ee}
+.background-gallery{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.background-gallery button{position:relative;display:flex;flex-direction:column;gap:7px;min-width:0;padding:7px;background:#ffffff0b;color:#e8eef6;border:1px solid #ffffff22;text-align:left;overflow:hidden}
+.background-gallery button.selected{border-color:#a9c9ee;box-shadow:0 0 0 2px #a9c9ee66;background:#8baed326}
+.background-gallery img{display:block;width:100%;height:100px;object-fit:cover;border-radius:6px;background:#25384e}
+.background-gallery span{font-size:13px;font-weight:600}
+.background-gallery small{font-size:11px;color:#a9c9ee}
 .appearance-preview{position:relative;min-height:170px;border-radius:13px;overflow:hidden;background-color:#172536;border:1px solid #ffffff35}
 .preview-image{position:absolute;inset:-22px;background-color:#172536}
 .preview-shade{position:absolute;inset:0;background:rgba(0,0,0,.18)}
@@ -261,7 +295,7 @@ a{color:#c4d4e8;text-decoration:none}
 .preview-minimal .preview-shade{background:rgba(255,255,255,.18)}
 .preview-tech .preview-content span{border-color:#75c8ff;background:#183f6a99}
 .preview-nature .preview-content span{background:#31563eaa}
-@media(max-width:900px){.theme-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:900px){.theme-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.background-gallery{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:560px){
 .admin-page{padding:18px 10px calc(38px + env(safe-area-inset-bottom))}
 header{margin-bottom:20px;padding:0 5px}
@@ -275,7 +309,7 @@ header{margin-bottom:20px;padding:0 5px}
 .top-actions .save-button{width:100%;min-height:48px}
 .actions{align-items:stretch;flex-direction:column}
 .actions button{width:100%;min-height:44px}
-.two-fields{grid-template-columns:1fr}.theme-grid{grid-template-columns:1fr 1fr}
+.two-fields{grid-template-columns:1fr}.theme-grid{grid-template-columns:1fr 1fr}.background-gallery{grid-template-columns:repeat(2,minmax(0,1fr))}.background-gallery img{height:90px}
 .section-heading{align-items:flex-start;flex-direction:column}
 .tabs{margin-top:16px;gap:6px}
 .tabs button{padding:10px 13px}
