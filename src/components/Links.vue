@@ -14,8 +14,8 @@
       <SwiperSlide v-for="(site, page) in siteLinksList" :key="page">
         <el-row class="link-all" :gutter="20">
           <el-col v-for="(item, index) in site" :span="8" :key="item.id || item.url || item.link || item.title">
-            <div class="item cards" :style="index < 3 ? 'margin-bottom: 20px' : null" @click="jumpLink(item)">
-              <img v-if="isUploadedIcon(item.icon)" class="favicon custom-uploaded-icon" :src="item.icon" :alt="(item.name || item.title) + ' 自定义图标'" loading="lazy"/>
+            <div class="item cards" :class="{ 'image-only': isImageOnly(item) }" :style="index < 3 ? 'margin-bottom: 20px' : null" @click="jumpLink(item)">
+              <img v-if="isUploadedIcon(item.icon)" :class="['favicon', 'custom-uploaded-icon', { 'image-only-preview': isImageOnly(item) }]" :src="item.icon" :alt="(item.name || item.title) + ' 图片'" loading="lazy"/>
               <Icon v-else-if="item.icon && siteIcon[item.icon]" size="26"><component :is="siteIcon[item.icon]" /></Icon>
               <span v-else-if="item.icon" class="custom-icon">{{ item.icon }}</span>
               <template v-else>
@@ -29,6 +29,10 @@
       </SwiperSlide>
       <div class="swiper-pagination" />
     </Swiper>
+    <div v-if="previewImage" class="image-viewer" role="dialog" aria-modal="true" aria-label="图片预览" @click="previewImage=''">
+      <button type="button" class="image-viewer-close" aria-label="关闭图片预览" @click.stop="previewImage=''">×</button>
+      <img :src="previewImage" alt="图片预览" @click.stop/>
+    </div>
   </div>
 </template>
 
@@ -43,6 +47,7 @@ import fallbackLinks from "@/assets/siteLinks.json";
 
 const store = mainStore();
 const links = ref(fallbackLinks);
+const previewImage = ref("");
 const siteLinksList = computed(() => {
   const result = [];
   for (let i = 0; i < links.value.length; i += 6) result.push(links.value.slice(i, i + 6));
@@ -51,6 +56,9 @@ const siteLinksList = computed(() => {
 const siteIcon = { Blog, Cloud, CompactDisc, Compass, Book, Fire, LaptopCode, Link };
 function isUploadedIcon(value) {
   return typeof value === "string" && /^\/api\/images\/[A-Za-z0-9_-]+$/.test(value);
+}
+function isImageOnly(item) {
+  return !(item.url || item.link) && isUploadedIcon(item.icon);
 }
 const failedFavicons = ref(new Set());
 const faviconFallbackUsed = new WeakSet();
@@ -78,7 +86,10 @@ function handleFaviconError(event, item) {
 }
 const jumpLink = (data) => {
   const target = data.url || data.link;
-  if (!target) return;
+  if (!target) {
+    if (isUploadedIcon(data.icon)) previewImage.value = data.icon;
+    return;
+  }
   if ((data.name || data.title) === "音乐" && store.musicClick) {
     if (typeof $openList === "function") $openList();
   } else {
@@ -119,11 +130,17 @@ onMounted(async () => {
       .name { font-size: 1.1rem; margin-left: 8px; }
       .custom-icon { font-size: 24px; line-height: 1; }
       .favicon { width: 28px; height: 28px; flex: 0 0 28px; object-fit: contain; border-radius: 5px; }
+      &.image-only { flex-direction: column; gap: 5px; cursor: zoom-in; }
+      .image-only-preview { width: 62px; height: 62px; flex: 0 0 62px; object-fit: contain; background: rgb(0 0 0 / 18%); }
       @media (min-width: 720px) and (max-width: 820px) { .name { display: none; } }
       @media (max-width: 720px) { height: 80px; }
       @media (max-width: 460px) { flex-direction: column; .name { font-size: 1rem; margin-left: 0; margin-top: 8px; } }
     }
     @media (max-width: 720px) { height: 180px; }
+  }
+  .image-viewer { position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 24px; background: rgb(0 0 0 / 88%); cursor: zoom-out;
+    img { display: block; max-width: min(92vw, 1100px); max-height: 88vh; object-fit: contain; border-radius: 10px; box-shadow: 0 12px 50px #0009; }
+    .image-viewer-close { position: absolute; top: max(18px, env(safe-area-inset-top)); right: 20px; width: 42px; height: 42px; border: 0; border-radius: 50%; background: #ffffff24; color: #fff; font-size: 30px; line-height: 1; cursor: pointer; }
   }
 }
 </style>
