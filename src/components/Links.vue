@@ -15,13 +15,14 @@
         <el-row class="link-all" :gutter="20">
           <el-col v-for="(item, index) in site" :span="8" :key="item.id || item.url || item.link || item.title">
             <div class="item cards" :class="{ 'image-only': isImageOnly(item) }" :style="index < 3 ? 'margin-bottom: 20px' : null" @click="jumpLink(item)">
-              <img v-if="isUploadedIcon(item.icon)" :class="['favicon', 'custom-uploaded-icon', { 'image-only-preview': isImageOnly(item) }]" :src="item.icon" :alt="(item.name || item.title) + ' 图片'" loading="lazy"/>
-              <Icon v-else-if="item.icon && siteIcon[item.icon]" size="26"><component :is="siteIcon[item.icon]" /></Icon>
-              <span v-else-if="item.icon" class="custom-icon">{{ item.icon }}</span>
-              <template v-else>
-                <img v-if="!failedFavicons.has(String(item.id || item.url || item.title))" class="favicon" :src="getFaviconUrl(item.url || item.link)" :alt="(item.name || item.title) + ' 网站图标'" loading="lazy" @error="handleFaviconError($event, item)"/>
+              <img v-if="isImageOnly(item)" class="favicon custom-uploaded-icon image-only-preview" :src="item.icon" :alt="(item.name || item.title) + ' 图片'" loading="lazy"/>
+              <template v-else-if="hasWebsite(item)">
+                <img v-if="!failedFavicons.has(faviconKey(item))" class="favicon" :src="getFaviconUrl(item.url || item.link)" :alt="(item.name || item.title) + ' 网站图标'" loading="lazy" @error="handleFaviconError($event, item)"/>
                 <span v-else class="custom-icon">↗</span>
               </template>
+              <Icon v-else-if="item.icon && siteIcon[item.icon]" size="26"><component :is="siteIcon[item.icon]" /></Icon>
+              <span v-else-if="item.icon" class="custom-icon">{{ item.icon }}</span>
+              <span v-else class="custom-icon">↗</span>
               <span class="name text-hidden">{{ item.name || item.title }}</span>
             </div>
           </el-col>
@@ -60,6 +61,12 @@ function isUploadedIcon(value) {
 function isImageOnly(item) {
   return !(item.url || item.link) && isUploadedIcon(item.icon);
 }
+function hasWebsite(item) {
+  return typeof (item.url || item.link) === "string" && Boolean((item.url || item.link).trim());
+}
+function faviconKey(item) {
+  return String(item.id || item.url || item.link || item.title);
+}
 const failedFavicons = ref(new Set());
 const faviconFallbackUsed = new WeakSet();
 function getFaviconUrl(value) {
@@ -73,7 +80,7 @@ function getFaviconUrl(value) {
 }
 function handleFaviconError(event, item) {
   const img = event.currentTarget;
-  const key = String(item.id || item.url || item.title);
+  const key = faviconKey(item);
   if (!faviconFallbackUsed.has(img)) {
     faviconFallbackUsed.add(img);
     try {
