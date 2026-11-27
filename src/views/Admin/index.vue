@@ -104,7 +104,7 @@
             <div class="actions"><button type="button" class="subtle" @click="resetAppearance">恢复默认外观</button></div>
           </div>
         </section>
-        <section v-else class="manager">
+        <section v-else-if="activeTab==='moods'" class="manager">
           <h2>心情文章</h2><p class="hint">管理公开博客文章与草稿。</p>
           <form id="mood-form" class="editor" @submit.prevent="save">
             <label>文章标题<input v-model="draft.title" maxlength="120" placeholder="给今天的心情起个标题" required/></label>
