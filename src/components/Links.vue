@@ -16,13 +16,15 @@
           <el-col v-for="(item, index) in site" :span="8" :key="item.id || item.url || item.link || item.title">
             <div class="item cards" :class="{ 'image-only': isImageOnly(item) }" :style="index < 3 ? 'margin-bottom: 20px' : null" @click="jumpLink(item)">
               <template v-if="hasWebsite(item)">
-                <img v-if="!failedFavicons.has(faviconKey(item))" class="favicon" :src="getFaviconUrl(item.url || item.link)" :alt="(item.name || item.title) + ' 网站图标'" loading="lazy" @error="handleFaviconError($event, item)"/>
+                <img v-if="!failedFavicons.has(faviconKey(item))" class="favicon" :src="getFaviconUrl(item.url || item.link)" :alt="(item.title || item.name) + ' 网站图标'" loading="lazy" @error="handleFaviconError($event, item)"/>
                 <span v-else class="custom-icon">↗</span>
               </template>
-              <Icon v-else-if="item.icon && siteIcon[item.icon]" size="26"><component :is="siteIcon[item.icon]" /></Icon>
-              <span v-else-if="item.icon" class="custom-icon">{{ item.icon }}</span>
-              <span v-else class="custom-icon">↗</span>
-              <span class="name text-hidden">{{ item.name || item.title }}</span>
+              <template v-else-if="!isImageOnly(item)">
+                <Icon v-if="item.icon && siteIcon[item.icon]" size="26"><component :is="siteIcon[item.icon]" /></Icon>
+                <span v-else-if="item.icon" class="custom-icon">{{ item.icon }}</span>
+                <span v-else class="custom-icon">↗</span>
+              </template>
+              <span class="name text-hidden">{{ item.title || item.name }}</span>
             </div>
           </el-col>
         </el-row>
