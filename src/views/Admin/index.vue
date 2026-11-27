@@ -122,7 +122,7 @@
         </section>
         <section v-else-if="activeTab==='images'" class="manager">
           <div class="section-heading"><div><h2>图片库</h2><p class="hint">图片上传后可在主页模块和心情日志中重复使用。</p></div><button type="button" @click="uploadInput?.click()" :disabled="uploading">{{ uploading ? "正在压缩上传…" : "＋ 上传图片" }}</button></div>
-          <p class="field-hint">自动压缩为 WebP；单张不超过 200 KB，最多 20 张，总容量不超过 4 MB。图片保存在现有 D1 数据库，不使用 R2。</p>
+          <p class="field-hint">原始图片超过 20 MB 会提示并拒绝处理；其余图片自动压缩为 WebP，压缩后单张不超过 200 KB，最多 20 张，总容量不超过 4 MB。图片保存在现有 D1 数据库，不使用 R2。</p>
           <p class="save-hint">当前：{{ images.length }} / 20 张 · {{ formatBytes(imageTotalBytes) }} / 4 MB</p>
           <div v-if="!images.length" class="empty-images">图片库还是空的，点击「上传图片」添加第一张。</div>
           <div v-else class="uploaded-gallery">
@@ -229,6 +229,12 @@ async function loadImageSource(file){
 async function uploadImage(event){
   const input=event.target, file=input.files?.[0];
   if(!file)return;
+  const maxOriginalSize=20*1024*1024;
+  if(file.size>maxOriginalSize){
+    message.value=`✕ 原始图片过大（${formatBytes(file.size)}），单张原图不能超过 20 MB。请先缩小图片后再上传。`;
+    input.value="";
+    return;
+  }
   uploading.value=true;message.value="正在压缩图片…";
   try{
     const bitmap=await loadImageSource(file);
