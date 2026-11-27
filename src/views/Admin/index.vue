@@ -47,7 +47,8 @@
             <label>网址<input v-model="linkDraft.url" maxlength="1000" placeholder="https://example.com" required/></label>
             <label>简短说明<input v-model="linkDraft.description" maxlength="300" placeholder="可选"/></label>
             <label>所属模块<select v-model="linkDraft.module_id"><option value="">不归属模块</option><option v-for="m in modules" :key="m.id" :value="String(m.id)">{{ m.title }}</option></select></label>
-            <div class="two-fields"><label>图标/表情<input v-model="linkDraft.icon" maxlength="40" placeholder="例如：🎮 或 Fire"/></label><label>显示顺序<input v-model.number="linkDraft.sort_order" type="number"/></label></div>
+            <div class="two-fields"><label>图标/表情（可选）<input v-model="linkDraft.icon" maxlength="40" placeholder="留空自动获取网站图标；也可填 🎮 或 Fire"/></label><label>显示顺序<input v-model.number="linkDraft.sort_order" type="number"/></label></div>
+            <p class="field-hint">图标栏留空时，主页会根据网址自动获取网站图标；也可以填写表情或内置图标名称来手动指定。自动获取失败时会尝试备用来源，最后显示默认箭头。</p>
             <label class="check"><input v-model="linkDraft.enabled" type="checkbox"/> 在主页显示</label>
             <div class="actions"><button type="button" class="subtle" @click="resetLink">清空表单</button></div>
           </form>
