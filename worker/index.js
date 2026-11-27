@@ -174,7 +174,7 @@ export default {
         }
         const result = await env.DB.prepare(
           "INSERT INTO moods (title, content, mood_date, published) VALUES (?, ?, ?, ?)"
-        ).bind(String(data.title).trim().slice(0, 120), String(data.content).slice(0, 20000), data.mood_date, data.published ? 1 : 0).run();
+        ).bind(String(data.title).trim().slice(0, 120), String(data.content).slice(0, 20000), data.mood_date, 1).run();
         return json({ ok: true, id: result.meta.last_row_id }, 201);
       }
       const prefix = "/api/admin/moods/";
@@ -189,7 +189,7 @@ export default {
           }
           await env.DB.prepare(
             "UPDATE moods SET title = ?, content = ?, mood_date = ?, published = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?"
-          ).bind(String(data.title).trim().slice(0, 120), String(data.content).slice(0, 20000), data.mood_date, data.published ? 1 : 0, id).run();
+          ).bind(String(data.title).trim().slice(0, 120), String(data.content).slice(0, 20000), data.mood_date, 1, id).run();
           return json({ ok: true });
         }
         if (request.method === "DELETE") {
