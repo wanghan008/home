@@ -5,7 +5,6 @@
       <span class="sm">主页</span>
     </div>
     <Func />
-    <Link />
     <section v-if="modules.length" class="homepage-modules">
       <div class="module-section-title">主页内容</div>
       <article v-for="module in modules" :key="module.id" class="module-card" :class="{ clickable: module.link_url }" @click="openModule(module)">
@@ -18,6 +17,7 @@
         </div>
       </article>
     </section>
+    <Link />
   </div>
 </template>
 
