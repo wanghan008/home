@@ -153,7 +153,8 @@
 </template>
 <script setup>
 import { ref, reactive, computed, onMounted } from "vue";
-const authenticated=ref(false), password=ref(""), busy=ref(false), items=ref([]), modules=ref([]), links=ref([]), message=ref(""), activeTab=ref("modules"), imageError=ref(false);\nconst images=ref([]), imageTotalBytes=ref(0), uploading=ref(false), uploadInput=ref(null), imagePickerOpen=ref(false), imagePickerTarget=ref("");
+const authenticated=ref(false), password=ref(""), busy=ref(false), items=ref([]), modules=ref([]), links=ref([]), message=ref(""), activeTab=ref("modules"), imageError=ref(false);
+const images=ref([]), imageTotalBytes=ref(0), uploading=ref(false), uploadInput=ref(null), imagePickerOpen=ref(false), imagePickerTarget=ref("");
 const tabs=[{id:"modules",label:"主页模块"},{id:"links",label:"网站链接"},{id:"appearance",label:"主页外观"},{id:"moods",label:"心情文章"},{id:"images",label:"图片库"}];
 const themes=[
   {id:"classic",label:"经典原版风",description:"保留当前主页视觉"},
@@ -252,7 +253,7 @@ function openImagePicker(target){imagePickerTarget.value=target;imagePickerOpen.
 function closeImagePicker(){imagePickerOpen.value=false;imagePickerTarget.value="";}
 function selectImage(item){
   if(imagePickerTarget.value==="module")moduleDraft.image_url="/api/images/"+item.id;
-  else if(imagePickerTarget.value==="mood")draft.content+=(draft.content?"\\n\\n":"")+"![图片](/api/images/"+item.id+")";
+  else if(imagePickerTarget.value==="mood")draft.content+=(draft.content?"\n\n":"")+"![图片](/api/images/"+item.id+")";
   closeImagePicker();
   message.value="已插入图片："+item.name;
 }
