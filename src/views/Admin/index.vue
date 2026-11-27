@@ -48,7 +48,10 @@
             <label>简短说明<input v-model="linkDraft.description" maxlength="300" placeholder="可选"/></label>
             <label>所属模块<select v-model="linkDraft.module_id"><option value="">不归属模块</option><option v-for="m in modules" :key="m.id" :value="String(m.id)">{{ m.title }}</option></select></label>
             <div class="two-fields"><label>图标/表情（可选）<input v-model="linkDraft.icon" maxlength="40" placeholder="留空自动获取网站图标；也可填 🎮 或 Fire"/></label><label>显示顺序<input v-model.number="linkDraft.sort_order" type="number"/></label></div>
-            <p class="field-hint">图标栏留空时，主页会根据网址自动获取网站图标；也可以填写表情或内置图标名称来手动指定。自动获取失败时会尝试备用来源，最后显示默认箭头。</p>
+            <p class="field-hint">图标栏留空时，主页会根据网址自动获取网站图标；也可以填写表情或内置图标名称来手动指定。</p>
+            <button type="button" class="subtle picker-trigger" @click="openImagePicker('link')">从图片库选择链接图标</button>
+            <div v-if="linkDraft.icon && linkDraft.icon.startsWith('/api/images/')" class="image-preview link-icon-preview"><img :src="linkDraft.icon" alt="网站链接图标预览"/><span>当前使用图片库中的自定义图标</span><button type="button" class="subtle" @click="linkDraft.icon=''">移除图片图标</button></div>
+            <p class="field-hint">选择图片后会作为该网站链接的图标；留空则自动获取网站 Favicon。上传新图片请先在「图片库」上传，再回来选择。</p>
             <label class="check"><input v-model="linkDraft.enabled" type="checkbox"/> 在主页显示</label>
             <div class="actions"><button type="button" class="subtle" @click="resetLink">清空表单</button></div>
           </form>
@@ -294,6 +297,7 @@ function closeImagePicker(){imagePickerOpen.value=false;imagePickerTarget.value=
 function selectImage(item){
   if(imagePickerTarget.value==="module")moduleDraft.image_url="/api/images/"+item.id;
   else if(imagePickerTarget.value==="mood")draft.content+=(draft.content?"\n\n":"")+"![图片](/api/images/"+item.id+")";
+  else if(imagePickerTarget.value==="link")linkDraft.icon="/api/images/"+item.id;
   closeImagePicker();
   message.value="已插入图片："+item.name;
 }
