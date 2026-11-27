@@ -123,7 +123,7 @@
         </section>
         <section v-else-if="activeTab==='images'" class="manager">
           <div class="section-heading"><div><h2>图片库</h2><p class="hint">图片上传后可在主页模块和心情日志中重复使用。</p></div><button type="button" @click="uploadInput?.click()" :disabled="uploading">{{ uploading ? "正在压缩上传…" : "＋ 上传图片" }}</button></div>
-          <p class="field-hint">原始图片超过 20 MB 会提示并拒绝处理；其余图片自动压缩为 WebP，压缩后单张不超过 200 KB，最多 20 张，总容量不超过 4 MB。图片保存在现有 D1 数据库，不使用 R2。</p>
+          <p class="field-hint">原始图片超过 20 MB 会提示并拒绝处理。可选择 JPG、PNG、WebP、GIF、AVIF、BMP、SVG 等图片；HEIC/HEIF、TIFF 等格式能否上传取决于当前浏览器是否支持解码。上传时自动转换为 WebP（若浏览器不支持 WebP 编码则使用实际生成的 PNG/JPG），压缩后单张不超过 200 KB，最多 20 张，总容量不超过 4 MB。图片保存在现有 D1 数据库，不使用 R2。</p>
           <p class="save-hint">当前：{{ images.length }} / 20 张 · {{ formatBytes(imageTotalBytes) }} / 4 MB</p>
           <div v-if="!images.length" class="empty-images">图片库还是空的，点击「上传图片」添加第一张。</div>
           <div v-else class="uploaded-gallery">
@@ -211,6 +211,11 @@ const blankModule=()=>({id:null,title:"",subtitle:"",description:"",image_url:""
 const blankLink=()=>({id:null,module_id:"",title:"",url:"",description:"",icon:"",sort_order:links.value.length+1,enabled:true});
 const draft=reactive(blank()), moduleDraft=reactive(blankModule()), linkDraft=reactive(blankLink());
 async function api(path,options={}){const res=await fetch(path,{credentials:"same-origin",...options,headers:{"content-type":"application/json",...(options.headers||{})}});const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.error||"请求失败");return data;}
+function imageFormat(file){
+  const known={"image/jpeg":"JPEG","image/png":"PNG","image/webp":"WebP","image/gif":"GIF","image/avif":"AVIF","image/heic":"HEIC","image/heif":"HEIF","image/bmp":"BMP","image/tiff":"TIFF","image/svg+xml":"SVG"};
+  const ext=(file.name||"").split(".").pop()?.toUpperCase();
+  return known[file.type] || (file.type ? file.type : (ext ? ext+"（根据扩展名判断）" : "未知格式"));
+}
 async function loadImageSource(file){
   if(typeof createImageBitmap==="function"){
     try{return await createImageBitmap(file);}catch{}
@@ -220,7 +225,7 @@ async function loadImageSource(file){
     const image=await new Promise((resolve,reject)=>{
       const element=new Image();
       element.onload=()=>resolve(element);
-      element.onerror=()=>reject(new Error("浏览器无法读取这张图片，请尝试 JPG、PNG 或 WebP 格式。"));
+      element.onerror=()=>reject(new Error("浏览器无法解码该原图。"));
       element.src=objectUrl;
     });
     image.close=()=>URL.revokeObjectURL(objectUrl);
@@ -230,39 +235,51 @@ async function loadImageSource(file){
 async function uploadImage(event){
   const input=event.target, file=input.files?.[0];
   if(!file)return;
+  const originalFormat=imageFormat(file);
   const maxOriginalSize=20*1024*1024;
   if(file.size>maxOriginalSize){
-    message.value=`✕ 原始图片过大（${formatBytes(file.size)}），单张原图不能超过 20 MB。请先缩小图片后再上传。`;
+    message.value=`✕ 原图过大：${file.name}；识别格式：${originalFormat}；大小：${formatBytes(file.size)}。限制为单张原图不超过 20 MB。`;
     input.value="";
     return;
   }
-  uploading.value=true;message.value="正在压缩图片…";
+  uploading.value=true;message.value=`正在读取并转换：${file.name}（原图格式：${originalFormat}）…`;
+  let bitmap=null;
   try{
-    const bitmap=await loadImageSource(file);
+    try{bitmap=await loadImageSource(file);}
+    catch(error){throw new Error(`无法读取原图“${file.name}”。浏览器识别格式：${originalFormat}。这通常表示当前浏览器不支持解码该格式（常见于部分 HEIC/HEIF、TIFF 图片）。请先转换为 JPG、PNG 或 WebP 后重试。`);}
     const canvas=document.createElement("canvas");
     let width=bitmap.width,height=bitmap.height;
+    if(!width||!height)throw new Error(`原图尺寸无效；原图格式：${originalFormat}。`);
     const scale=Math.min(1,1600/Math.max(width,height));
     width=Math.max(1,Math.round(width*scale));height=Math.max(1,Math.round(height*scale));
     canvas.width=width;canvas.height=height;
     const context=canvas.getContext("2d");
+    if(!context)throw new Error("浏览器无法创建图片压缩画布。");
     context.drawImage(bitmap,0,0,width,height);
     let blob=await new Promise(resolve=>canvas.toBlob(resolve,"image/webp",0.82));
-    if(!blob)throw new Error("浏览器无法压缩此图片格式。");
+    if(!blob)throw new Error(`浏览器无法编码压缩图片；原图格式：${originalFormat}。`);
     for(let attempt=0;blob.size>200*1024&&attempt<8;attempt++){
       width=Math.max(1,Math.round(width*0.85));height=Math.max(1,Math.round(height*0.85));
       canvas.width=width;canvas.height=height;context.clearRect(0,0,width,height);context.drawImage(bitmap,0,0,width,height);
       blob=await new Promise(resolve=>canvas.toBlob(resolve,"image/webp",Math.max(0.5,0.78-attempt*0.04)));
-      if(!blob)throw new Error("图片压缩失败。");
+      if(!blob)throw new Error(`图片压缩失败；原图格式：${originalFormat}。`);
     }
-    bitmap.close?.();
-    if(blob.size>200*1024)throw new Error("图片压缩后仍超过 200 KB，请换一张较小的图片。");
-    const form=new FormData();const imageName=(file.name||"image").replace(/\.[^.]+$/,"").slice(0,80)+".webp";form.append("image",new File([blob],imageName,{type:"image/webp"}));
+    bitmap.close?.();bitmap=null;
+    const outputType=blob.type;
+    const outputExtensions={"image/webp":"webp","image/png":"png","image/jpeg":"jpg"};
+    const outputExtension=outputExtensions[outputType];
+    if(!outputExtension)throw new Error(`格式转换结果异常：原图为 ${originalFormat}，浏览器实际输出为“${outputType||"未知"}”。仅接受转换后的 WebP、PNG 或 JPEG。`);
+    if(blob.size>200*1024)throw new Error(`压缩后仍超过 200 KB（${formatBytes(blob.size)}）；原图格式：${originalFormat}，转换格式：${outputType}。请换一张尺寸较小的图片。`);
+    const form=new FormData();
+    const baseName=(file.name||"image").replace(/\.[^.]+$/,"").slice(0,80)||"image";
+    const imageName=baseName+"."+outputExtension;
+    form.append("image",new File([blob],imageName,{type:outputType}));
     const response=await fetch("/api/admin/images",{method:"POST",credentials:"same-origin",body:form});
     const result=await response.json().catch(()=>({}));
-    if(!response.ok)throw new Error(result.error||"图片上传失败");
-    await loadImages();message.value="✓ 图片上传成功，已加入图片库";
+    if(!response.ok)throw new Error(`服务器拒绝保存：原图格式 ${originalFormat}，转换后格式 ${outputType}；${result.error||"未知服务器错误"}`);
+    await loadImages();message.value=`✓ 上传成功：${file.name}（${originalFormat}）→ ${outputType}，已压缩为 ${formatBytes(blob.size)}。`;
   }catch(e){message.value="✕ 图片上传失败："+(e.message||"请重试");}
-  finally{uploading.value=false;input.value="";}
+  finally{bitmap?.close?.();uploading.value=false;input.value="";}
 }
 async function loadImages(){
   const result=await api("/api/admin/images");images.value=result.items||[];imageTotalBytes.value=Number(result.totalBytes||0);
