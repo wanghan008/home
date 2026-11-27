@@ -15,8 +15,7 @@
         <el-row class="link-all" :gutter="20">
           <el-col v-for="(item, index) in site" :span="8" :key="item.id || item.url || item.link || item.title">
             <div class="item cards" :class="{ 'image-only': isImageOnly(item) }" :style="index < 3 ? 'margin-bottom: 20px' : null" @click="jumpLink(item)">
-              <img v-if="isImageOnly(item)" class="favicon custom-uploaded-icon image-only-preview" :src="item.icon" :alt="(item.name || item.title) + ' 图片'" loading="lazy"/>
-              <template v-else-if="hasWebsite(item)">
+              <template v-if="hasWebsite(item)">
                 <img v-if="!failedFavicons.has(faviconKey(item))" class="favicon" :src="getFaviconUrl(item.url || item.link)" :alt="(item.name || item.title) + ' 网站图标'" loading="lazy" @error="handleFaviconError($event, item)"/>
                 <span v-else class="custom-icon">↗</span>
               </template>
@@ -137,8 +136,7 @@ onMounted(async () => {
       .name { font-size: 1.1rem; margin-left: 8px; }
       .custom-icon { font-size: 24px; line-height: 1; }
       .favicon { width: 28px; height: 28px; flex: 0 0 28px; object-fit: contain; border-radius: 5px; }
-      &.image-only { flex-direction: column; gap: 5px; cursor: zoom-in; }
-      .image-only-preview { width: 62px; height: 62px; flex: 0 0 62px; object-fit: contain; background: rgb(0 0 0 / 18%); }
+      &.image-only { cursor: zoom-in; }
       @media (min-width: 720px) and (max-width: 820px) { .name { display: none; } }
       @media (max-width: 720px) { height: 80px; }
       @media (max-width: 460px) { flex-direction: column; .name { font-size: 1rem; margin-left: 0; margin-top: 8px; } }
