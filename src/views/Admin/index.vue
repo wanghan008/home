@@ -210,12 +210,28 @@ const blankModule=()=>({id:null,title:"",subtitle:"",description:"",image_url:""
 const blankLink=()=>({id:null,module_id:"",title:"",url:"",description:"",icon:"",sort_order:links.value.length+1,enabled:true});
 const draft=reactive(blank()), moduleDraft=reactive(blankModule()), linkDraft=reactive(blankLink());
 async function api(path,options={}){const res=await fetch(path,{credentials:"same-origin",...options,headers:{"content-type":"application/json",...(options.headers||{})}});const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.error||"请求失败");return data;}
+async function loadImageSource(file){
+  if(typeof createImageBitmap==="function"){
+    try{return await createImageBitmap(file);}catch{}
+  }
+  const objectUrl=URL.createObjectURL(file);
+  try{
+    const image=await new Promise((resolve,reject)=>{
+      const element=new Image();
+      element.onload=()=>resolve(element);
+      element.onerror=()=>reject(new Error("浏览器无法读取这张图片，请尝试 JPG、PNG 或 WebP 格式。"));
+      element.src=objectUrl;
+    });
+    image.close=()=>URL.revokeObjectURL(objectUrl);
+    return image;
+  }catch(error){URL.revokeObjectURL(objectUrl);throw error;}
+}
 async function uploadImage(event){
   const input=event.target, file=input.files?.[0];
   if(!file)return;
   uploading.value=true;message.value="正在压缩图片…";
   try{
-    const bitmap=await createImageBitmap(file);
+    const bitmap=await loadImageSource(file);
     const canvas=document.createElement("canvas");
     let width=bitmap.width,height=bitmap.height;
     const scale=Math.min(1,1600/Math.max(width,height));
@@ -233,7 +249,7 @@ async function uploadImage(event){
     }
     bitmap.close?.();
     if(blob.size>200*1024)throw new Error("图片压缩后仍超过 200 KB，请换一张较小的图片。");
-    const form=new FormData();form.append("image",new File([blob],"image-"+Date.now()+".webp",{type:"image/webp"}));
+    const form=new FormData();const imageName=(file.name||"image").replace(/\\.[^.]+$/,"").slice(0,80)+".webp";form.append("image",new File([blob],imageName,{type:"image/webp"}));
     const response=await fetch("/api/admin/images",{method:"POST",credentials:"same-origin",body:form});
     const result=await response.json().catch(()=>({}));
     if(!response.ok)throw new Error(result.error||"图片上传失败");
