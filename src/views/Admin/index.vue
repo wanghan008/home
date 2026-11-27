@@ -246,7 +246,7 @@ async function uploadImage(event){
   let bitmap=null;
   try{
     try{bitmap=await loadImageSource(file);}
-    catch(error){throw new Error(`无法读取原图“${file.name}”。浏览器识别格式：${originalFormat}。这通常表示当前浏览器不支持解码该格式（常见于部分 HEIC/HEIF、TIFF 图片）。请先转换为 JPG、PNG 或 WebP 后重试。`);}
+    catch{throw new Error(`无法读取原图“${file.name}”。浏览器识别格式：${originalFormat}。这通常表示当前浏览器不支持解码该格式（常见于部分 HEIC/HEIF、TIFF 图片）。请先转换为 JPG、PNG 或 WebP 后重试。`);}
     const canvas=document.createElement("canvas");
     let width=bitmap.width,height=bitmap.height;
     if(!width||!height)throw new Error(`原图尺寸无效；原图格式：${originalFormat}。`);
