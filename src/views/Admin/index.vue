@@ -119,6 +119,21 @@ const themes=[
   {id:"minimal",label:"简约清爽风",description:"明亮、干净、轻量"},
   {id:"glass",label:"深色玻璃风",description:"半透明玻璃质感"},
   {id:"nature",label:"自然舒适风",description:"绿色与大地色调"},
+  {id:"ocean",label:"深海 ocean 风",description:"海军蓝、青蓝与水下氛围"},
+  {id:"sunset",label:"落日暖橙风",description:"橘红、金色与黄昏渐变"},
+  {id:"sakura",label:"樱花粉色风",description:"柔粉、奶白与温柔氛围"},
+  {id:"cyberpunk",label:"赛博霓虹风",description:"黑紫底色与荧光粉青"},
+  {id:"aurora",label:"极光幻彩风",description:"青绿、蓝紫的极光色彩"},
+  {id:"midnight",label:"午夜黑金风",description:"深黑底色与香槟金点缀"},
+  {id:"lavender",label:"薰衣草紫风",description:"淡紫、雾蓝与柔和层次"},
+  {id:"cream",label:"奶油米白风",description:"奶油白、浅咖与温暖质感"},
+  {id:"forest",label:"森林秘境风",description:"墨绿、苔藓绿与自然气息"},
+  {id:"desert",label:"沙漠暖沙风",description:"沙色、陶土与日光质感"},
+  {id:"mono",label:"黑白极简风",description:"纯粹黑白与清晰对比"},
+  {id:"retro",label:"复古胶片风",description:"棕褐、旧金与怀旧色调"},
+  {id:"nordic",label:"北欧浅灰风",description:"雾灰、冰蓝与克制留白"},
+  {id:"rose",label:"玫瑰酒红风",description:"酒红、玫瑰与优雅质感"},
+  {id:"emerald",label:"翡翠绿风",description:"深翡翠与清透金属感"},
 ];
 const defaultAppearance=()=>({theme:"classic",backgroundUrl:"",backgroundFit:"cover",backgroundBlur:20,backgroundDim:70});
 const appearanceDraft=reactive(defaultAppearance());
@@ -219,6 +234,21 @@ a{color:#c4d4e8;text-decoration:none}
 .theme-glass{background:linear-gradient(135deg,#1c2938,#aab9ca)}
 .theme-nature{background:linear-gradient(135deg,#456b45,#c0a56a)}
 .theme-classic{background:linear-gradient(135deg,#25384e,#66778a)}
+.theme-ocean{background:linear-gradient(135deg,#063b59,#26a6b8)}
+.theme-sunset{background:linear-gradient(135deg,#ef6a3a,#f4c16b)}
+.theme-sakura{background:linear-gradient(135deg,#ef9ab7,#fff0f4)}
+.theme-cyberpunk{background:linear-gradient(135deg,#17102e,#fa3eae)}
+.theme-aurora{background:linear-gradient(135deg,#16a89b,#7654c8)}
+.theme-midnight{background:linear-gradient(135deg,#111318,#c5a45b)}
+.theme-lavender{background:linear-gradient(135deg,#9d8bc8,#d8d4f2)}
+.theme-cream{background:linear-gradient(135deg,#f4e8d2,#b99b76)}
+.theme-forest{background:linear-gradient(135deg,#183d32,#91a66b)}
+.theme-desert{background:linear-gradient(135deg,#c47d4c,#eed1a0)}
+.theme-mono{background:linear-gradient(135deg,#111,#eee)}
+.theme-retro{background:linear-gradient(135deg,#68452f,#d2a66b)}
+.theme-nordic{background:linear-gradient(135deg,#c5d5df,#f5f7f8)}
+.theme-rose{background:linear-gradient(135deg,#572235,#c77a8b)}
+.theme-emerald{background:linear-gradient(135deg,#075e50,#9bc8a8)}
 .appearance-editor input[type=range]{width:100%;margin:12px 0 0;accent-color:#a9c9ee}
 .appearance-preview{position:relative;min-height:170px;border-radius:13px;overflow:hidden;background-color:#172536;border:1px solid #ffffff35}
 .preview-image{position:absolute;inset:-22px;background-color:#172536}
